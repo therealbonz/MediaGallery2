@@ -1,37 +1,68 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { type Media, type InsertMedia } from "@shared/schema";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getAllMedia(): Promise<Media[]>;
+  getMedia(id: number): Promise<Media | undefined>;
+  createMedia(media: InsertMedia): Promise<Media>;
+  updateMedia(id: number, media: Partial<Media>): Promise<Media | undefined>;
+  deleteMedia(id: number): Promise<boolean>;
+  reorderMedia(orderedIds: number[]): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private media: Map<number, Media>;
+  private nextId: number;
 
   constructor() {
-    this.users = new Map();
+    this.media = new Map();
+    this.nextId = 1;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+  async getAllMedia(): Promise<Media[]> {
+    return Array.from(this.media.values()).sort(
+      (a, b) => a.displayOrder - b.displayOrder
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async getMedia(id: number): Promise<Media | undefined> {
+    return this.media.get(id);
+  }
+
+  async createMedia(insertMedia: InsertMedia): Promise<Media> {
+    const id = this.nextId++;
+    const media: Media = {
+      id,
+      filename: insertMedia.filename,
+      url: insertMedia.url,
+      mediaType: insertMedia.mediaType,
+      liked: insertMedia.liked ?? false,
+      displayOrder: insertMedia.displayOrder ?? 0,
+      createdAt: new Date(),
+    };
+    this.media.set(id, media);
+    return media;
+  }
+
+  async updateMedia(id: number, updates: Partial<Media>): Promise<Media | undefined> {
+    const media = this.media.get(id);
+    if (!media) return undefined;
+
+    const updated = { ...media, ...updates };
+    this.media.set(id, updated);
+    return updated;
+  }
+
+  async deleteMedia(id: number): Promise<boolean> {
+    return this.media.delete(id);
+  }
+
+  async reorderMedia(orderedIds: number[]): Promise<void> {
+    orderedIds.forEach((id, index) => {
+      const media = this.media.get(id);
+      if (media) {
+        media.displayOrder = index;
+      }
+    });
   }
 }
 
