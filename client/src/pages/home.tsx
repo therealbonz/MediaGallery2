@@ -1,121 +1,160 @@
 import { useState, useMemo } from "react";
 import { Upload } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import CubeGallery from "@/components/CubeGallery";
 import UploadDropzone from "@/components/UploadDropzone";
 import MediaGrid from "@/components/MediaGrid";
 import SearchFilterBar from "@/components/SearchFilterBar";
 import DraggableModal from "@/components/DraggableModal";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Media } from "@shared/schema";
 
 export default function Home() {
-  // todo: remove mock functionality - replace with real API calls
-  const [mediaList, setMediaList] = useState<Media[]>([
-    {
-      id: 1,
-      filename: "mountain-vista.jpg",
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-      mediaType: "image",
-      liked: false,
-      displayOrder: 0,
-      createdAt: new Date(),
-    },
-    {
-      id: 2,
-      filename: "nature-trail.jpg",
-      url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-      mediaType: "image",
-      liked: true,
-      displayOrder: 1,
-      createdAt: new Date(),
-    },
-    {
-      id: 3,
-      filename: "forest-path.jpg",
-      url: "https://images.unsplash.com/photo-1426604966848-d7adac402bff",
-      mediaType: "image",
-      liked: false,
-      displayOrder: 2,
-      createdAt: new Date(),
-    },
-    {
-      id: 4,
-      filename: "sunset-mountains.jpg",
-      url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-      mediaType: "image",
-      liked: false,
-      displayOrder: 3,
-      createdAt: new Date(),
-    },
-    {
-      id: 5,
-      filename: "beach-sunset.jpg",
-      url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e",
-      mediaType: "image",
-      liked: true,
-      displayOrder: 4,
-      createdAt: new Date(),
-    },
-    {
-      id: 6,
-      filename: "lake-reflection.jpg",
-      url: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1",
-      mediaType: "image",
-      liked: false,
-      displayOrder: 5,
-      createdAt: new Date(),
-    },
-    {
-      id: 7,
-      filename: "ocean-waves.jpg",
-      url: "https://images.unsplash.com/photo-1505142468610-359e7d316be0",
-      mediaType: "image",
-      liked: false,
-      displayOrder: 6,
-      createdAt: new Date(),
-    },
-    {
-      id: 8,
-      filename: "snowy-peaks.jpg",
-      url: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e",
-      mediaType: "image",
-      liked: true,
-      displayOrder: 7,
-      createdAt: new Date(),
-    },
-  ]);
-
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [mediaTypeFilter, setMediaTypeFilter] = useState("all");
   const [likedFilter, setLikedFilter] = useState("all");
   const [modalMedia, setModalMedia] = useState<Media | null>(null);
   const [showUpload, setShowUpload] = useState(false);
 
-  // todo: remove mock functionality
+  // Fetch media list
+  const { data: mediaList = [], isLoading } = useQuery<Media[]>({
+    queryKey: ["/api/media"],
+  });
+
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await fetch("/api/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+      setShowUpload(false);
+      toast({
+        title: "Upload successful",
+        description: "Your media has been uploaded",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload media. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Like mutation
+  const likeMutation = useMutation({
+    mutationFn: async ({ id, liked }: { id: number; liked: boolean }) => {
+      return await apiRequest("POST", `/api/media/${id}/like`, { liked });
+    },
+    onMutate: async ({ id, liked }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/media"] });
+      const previous = queryClient.getQueryData(["/api/media"]);
+
+      queryClient.setQueryData(["/api/media"], (old: Media[] | undefined) =>
+        old?.map((item) => (item.id === id ? { ...item, liked } : item))
+      );
+
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["/api/media"], context.previous);
+      }
+      toast({
+        title: "Failed to update",
+        description: "Could not update like status",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest("DELETE", `/api/media/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+      toast({
+        title: "Deleted",
+        description: "Media has been deleted",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete media",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleUpload = (files: File[]) => {
-    const newMedia: Media[] = files.map((file, index) => ({
-      id: Math.max(...mediaList.map((m) => m.id), 0) + index + 1,
-      filename: file.name,
-      url: URL.createObjectURL(file),
-      mediaType: file.type.startsWith("image/") ? "image" : "video",
-      liked: false,
-      displayOrder: mediaList.length + index,
-      createdAt: new Date(),
-    }));
-    setMediaList((prev) => [...newMedia, ...prev]);
-    setShowUpload(false);
+    uploadMutation.mutate(files);
   };
 
   const handleLike = (id: number) => {
-    setMediaList((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, liked: !item.liked } : item
-      )
-    );
+    const media = mediaList.find((m) => m.id === id);
+    if (media) {
+      likeMutation.mutate({ id, liked: !media.liked });
+    }
   };
 
   const handleDelete = (id: number) => {
-    setMediaList((prev) => prev.filter((item) => item.id !== id));
+    deleteMutation.mutate(id);
+  };
+
+  // Reorder mutation
+  const reorderMutation = useMutation({
+    mutationFn: async (orderedIds: number[]) => {
+      return await apiRequest("POST", "/api/media/reorder", { orderedIds });
+    },
+    onMutate: async (orderedIds) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/media"] });
+      const previous = queryClient.getQueryData(["/api/media"]);
+
+      queryClient.setQueryData(["/api/media"], (old: Media[] | undefined) => {
+        if (!old) return old;
+        const ordered = orderedIds.map((id) => old.find((m) => m.id === id)).filter(Boolean) as Media[];
+        return ordered;
+      });
+
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["/api/media"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    },
+  });
+
+  const handleReorder = (orderedIds: number[]) => {
+    reorderMutation.mutate(orderedIds);
   };
 
   const filteredMedia = useMemo(() => {
@@ -143,6 +182,14 @@ export default function Home() {
     [mediaList]
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-lg text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -154,9 +201,10 @@ export default function Home() {
           <Button
             onClick={() => setShowUpload(!showUpload)}
             data-testid="button-toggle-upload"
+            disabled={uploadMutation.isPending}
           >
             <Upload className="w-4 h-4 mr-2" />
-            Upload
+            {uploadMutation.isPending ? "Uploading..." : "Upload"}
           </Button>
         </div>
       </header>
@@ -177,35 +225,41 @@ export default function Home() {
         )}
 
         {/* Search & Filters */}
-        <section className="mb-6">
-          <SearchFilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            mediaTypeFilter={mediaTypeFilter}
-            onMediaTypeChange={setMediaTypeFilter}
-            likedFilter={likedFilter}
-            onLikedFilterChange={setLikedFilter}
-          />
-        </section>
+        {mediaList.length > 0 && (
+          <section className="mb-6">
+            <SearchFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              mediaTypeFilter={mediaTypeFilter}
+              onMediaTypeChange={setMediaTypeFilter}
+              likedFilter={likedFilter}
+              onLikedFilterChange={setLikedFilter}
+            />
+          </section>
+        )}
 
         {/* Gallery Grid */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">
-              Gallery
-              {filteredMedia.length !== mediaList.length && (
-                <span className="text-sm text-muted-foreground ml-2">
-                  ({filteredMedia.length} of {mediaList.length})
-                </span>
-              )}
-            </h2>
-          </div>
+          {mediaList.length > 0 && (
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-foreground">
+                Gallery
+                {filteredMedia.length !== mediaList.length && (
+                  <span className="text-sm text-muted-foreground ml-2">
+                    ({filteredMedia.length} of {mediaList.length})
+                  </span>
+                )}
+              </h2>
+            </div>
+          )}
 
           <MediaGrid
             items={filteredMedia}
+            allItems={mediaList}
             onLike={handleLike}
             onDelete={handleDelete}
             onItemClick={setModalMedia}
+            onReorder={handleReorder}
           />
         </section>
       </div>

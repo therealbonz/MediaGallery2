@@ -71,6 +71,7 @@ export default function MediaGridExample() {
     <div className="p-6">
       <MediaGrid
         items={mockData}
+        allItems={mockData}
         onLike={handleLike}
         onDelete={handleDelete}
         onItemClick={handleItemClick}
