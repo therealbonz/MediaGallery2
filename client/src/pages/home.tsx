@@ -32,7 +32,8 @@ export default function Home() {
         formData.append("files", file);
       });
 
-      const response = await fetch("/api/media/upload", {
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiBase}/api/media/upload`, {
         method: "POST",
         body: formData,
       });
