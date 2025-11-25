@@ -1,0 +1,413 @@
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import CubeGallery from "./components/CubeGallery";
+import { UploadDropzone } from "./components/UploadDropzone";
+import type { Media } from "./types";
+
+const API_URL = "http://127.0.0.1:3000";
+
+type MediaWithSpan = Media & { span: number };
+
+// -------------------------------------------
+// Draggable Modal
+// -------------------------------------------
+const DraggableModal: React.FC<{
+  children: React.ReactNode;
+  onClose: () => void;
+}> = ({ children, onClose }) => {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [scale, setScale] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      setDragging(true);
+      setOrigin({ x: e.clientX - pos.x, y: e.clientY - pos.y });
+    },
+    [pos]
+  );
+
+  const handleMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!dragging) return;
+      setPos({ x: e.clientX - origin.x, y: e.clientY - origin.y });
+    },
+    [dragging, origin]
+  );
+
+  const handleUp = useCallback(() => {
+    setDragging(false);
+  }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY * -0.001;
+    setScale((s) => Math.min(Math.max(s + delta, 0.5), 4));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setPos({ x: 0, y: 0 });
+    setScale(1);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "r" || e.key === "R") handleReset();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, handleReset]);
+
+  return (
+    <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={handleDown}
+      onMouseMove={handleMove}
+      onMouseUp={handleUp}
+      onMouseLeave={handleUp}
+      onWheel={handleWheel}
+      onClick={(e) => e.stopPropagation()}
+      className="relative select-none bg-gray-900 p-4 rounded-lg shadow-2xl"
+      style={{
+        transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`,
+        cursor: dragging ? "grabbing" : "grab",
+        transition: dragging ? "none" : "transform 0.1s ease-out",
+        maxWidth: "90vw",
+        maxHeight: "90vh",
+      }}
+    >
+      {children}
+      <div className="absolute top-2 right-2 text-xs bg-black/60 px-2 py-1 rounded pointer-events-none">
+        {Math.round(scale * 100)}%
+      </div>
+    </div>
+  );
+};
+
+// -------------------------------------------
+// Main App
+// -------------------------------------------
+const App: React.FC = () => {
+  const [mediaList, setMediaList] = useState<MediaWithSpan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [modalMedia, setModalMedia] = useState<Media | null>(null);
+  const spanMapRef = useRef(new Map<number, number>());
+  const galleryRef = useRef<HTMLDivElement>(null);
+
+  const assignSpan = useCallback((media: Media): MediaWithSpan => {
+    if (!spanMapRef.current.has(media.id)) {
+      spanMapRef.current.set(media.id, Math.floor(Math.random() * 2) + 1);
+    }
+    return {
+      ...media,
+      span: spanMapRef.current.get(media.id)!,
+    };
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchMedia = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/media`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("Failed to fetch media");
+        const data = await res.json();
+        const normalized = data.map((m: any) =>
+          assignSpan({
+            id: m.id,
+            url: m.url || m.image_url || m.file_url,
+            filename: m.filename || "media",
+            media_type: m.media_type || "image",
+            liked: m.liked || false,
+          })
+        );
+        setMediaList(normalized);
+      } catch (err) {
+        if ((err as any)?.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMedia();
+
+    return () => controller.abort();
+  }, [assignSpan]);
+
+  const handleUpload = useCallback(
+    (newMedia: Media[]) => {
+      setMediaList((prev) => [...newMedia.map(assignSpan), ...prev]);
+    },
+    [assignSpan]
+  );
+
+  const handleDragEnd = useCallback(
+    (result: DropResult) => {
+      if (!result.destination) return;
+
+      const items = [...mediaList];
+      const [removed] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, removed);
+
+      setMediaList(items);
+
+      fetch(`${API_URL}/api/media/reorder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ordered_ids: items.map((m) => m.id) }),
+      }).catch((err) => console.error("Failed to persist reorder:", err));
+    },
+    [mediaList]
+  );
+
+  const toggleLike = useCallback(
+    async (id: number) => {
+      const media = mediaList.find((m) => m.id === id);
+      if (!media) return;
+
+      setMediaList((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, liked: !m.liked } : m))
+      );
+
+      try {
+        await fetch(`${API_URL}/api/media/${id}/like`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ liked: !media.liked }),
+        });
+      } catch (err) {
+        setMediaList((prev) =>
+          prev.map((m) => (m.id === id ? { ...m, liked: media.liked } : m))
+        );
+        console.error("Failed to toggle like:", err);
+      }
+    },
+    [mediaList]
+  );
+
+  const deleteMedia = useCallback(async (id: number) => {
+    setMediaList((prev) => prev.filter((m) => m.id !== id));
+    spanMapRef.current.delete(id);
+
+    try {
+      const res = await fetch(`${API_URL}/api/media/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        console.error("Failed to delete media on server");
+      }
+    } catch (err) {
+      console.error("Failed to delete media:", err);
+    }
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalMedia(null);
+  }, []);
+
+  const cubeImages = useMemo(
+    () =>
+      mediaList.slice(0, 6).map((m) => ({
+        src: m.url,
+        alt: m.filename,
+      })),
+    [mediaList]
+  );
+
+  const galleryItems = useMemo(() => mediaList, [mediaList]);
+
+  if (loading)
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-white text-lg">Loading9aa</div>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-red-500 text-lg">Error: {error}</div>
+      </div>
+    );
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-6 flex flex-col gap-10">
+      <header className="text-center text-2xl font-bold pb-3 border-b border-gray-800">
+        My Media Gallery
+      </header>
+
+      {/* Cube */}
+      <section className="w-full flex justify-center mt-6">
+        <CubeGallery images={cubeImages} rotate />
+      </section>
+
+      {/* Upload */}
+      <section className="w-full max-w-xl mx-auto">
+        <UploadDropzone onUploaded={handleUpload} />
+      </section>
+
+      {/* Gallery */}
+      <section className="w-full">
+        <h2 className="text-xl mb-4 font-semibold">Gallery</h2>
+
+        {galleryItems.length === 0 ? (
+          <div className="text-center text-gray-500 py-12">
+            No media items to display
+          </div>
+        ) : (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="gallery">
+              {(provided) => (
+                <div
+                  ref={galleryRef}
+                  {...provided.droppableProps}
+                  className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 auto-rows-[120px]"
+                >
+                  {galleryItems.map((media, i) => (
+                    <Draggable
+                      key={media.id}
+                      draggableId={String(media.id)}
+                      index={i}
+                    >
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className={`relative rounded-lg overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02]
+                            ${media.span === 2 ? "row-span-2" : "row-span-1"}
+                            ${snapshot.isDragging ? "scale-95 shadow-2xl z-50" : "shadow-md"}`}
+                          style={provided.draggableProps.style}
+                          onClick={() => {
+                            // Scroll to bottom
+                            galleryRef.current?.scrollTo({
+                              top: galleryRef.current.scrollHeight,
+                              behavior: "smooth",
+                            });
+                            setModalMedia(media);
+                          }}
+                        >
+                          {media.media_type === "image" ? (
+                            <img
+                              src={media.url}
+                              alt={media.filename}
+                              className="object-cover w-full h-full"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <video
+                              src={media.url}
+                              className="object-cover w-full h-full"
+                              muted
+                              loop
+                              onMouseEnter={(e) => e.currentTarget.play()}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.pause();
+                                e.currentTarget.currentTime = 0;
+                              }}
+                            />
+                          )}
+
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                          <button
+                            className={`absolute top-2 right-2 p-2 rounded-full text-lg transition-all
+                              opacity-0 group-hover:opacity-100
+                              ${media.liked ? "bg-red-600 text-white scale-110" : "bg-white/90 text-red-600"}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleLike(media.id);
+                            }}
+                            aria-label={media.liked ? "Unlike" : "Like"}
+                          >
+                            5
+                          </button>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
+      </section>
+
+      {/* Modal */}
+      {modalMedia && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm"
+          onClick={closeModal}
+        >
+          <DraggableModal onClose={closeModal}>
+            {modalMedia.media_type === "image" ? (
+              <img
+                src={modalMedia.url}
+                alt={modalMedia.filename}
+                className="max-h-[75vh] max-w-full mx-auto rounded"
+                draggable={false}
+              />
+            ) : (
+              <video
+                src={modalMedia.url}
+                controls
+                autoPlay
+                className="max-h-[75vh] max-w-full mx-auto rounded"
+              />
+            )}
+
+            <div className="flex justify-between items-center gap-3 mt-4">
+              <span className="text-sm text-gray-400 truncate flex-1">
+                {modalMedia.filename}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  className="px-4 py-2 bg-red-600 rounded hover:bg-red-700 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteMedia(modalMedia.id);
+                    closeModal();
+                  }}
+                >
+                  Delete
+                </button>
+
+                <button
+                  className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeModal();
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </DraggableModal>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
