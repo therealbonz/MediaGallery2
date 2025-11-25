@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 
 interface MediaGridProps {
   items: Media[];
-  allItems: Media[];
+  allItems?: Media[];
   onLike?: (id: number) => void;
   onDelete?: (id: number) => void;
   onItemClick?: (media: Media) => void;
   onReorder?: (orderedIds: number[]) => void;
 }
 
-export default function MediaGrid({ items, allItems, onLike, onDelete, onItemClick, onReorder }: MediaGridProps) {
+export default function MediaGrid({ items, allItems = items, onLike, onDelete, onItemClick, onReorder }: MediaGridProps) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   // Deterministic span assignment based on media ID
