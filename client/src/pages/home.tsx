@@ -53,51 +53,6 @@ export default function Home() {
     }
   }, [mediaMetadata, mediaList.length]);
 
-  // Upload mutation
-  const uploadMutation = useMutation({
-    mutationFn: async (files: File[]) => {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      const apiBase = import.meta.env.VITE_API_URL || '';
-      const url = `${apiBase}/api/media/upload`;
-      console.log("Uploading to:", url);
-      
-      const response = await fetch(url, {
-        method: "POST",
-        body: formData,
-      });
-
-      const responseText = await response.text();
-      console.log("Upload response status:", response.status);
-      console.log("Upload response:", responseText);
-
-      if (!response.ok) {
-        throw new Error(`Upload failed (${response.status}): ${responseText}`);
-      }
-
-      return JSON.parse(responseText);
-    },
-    onSuccess: (data) => {
-      console.log("Upload successful, data:", data);
-      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
-      setShowUpload(false);
-      toast({
-        title: "Upload successful",
-        description: `Uploaded ${data.length || 1} file(s)`,
-      });
-    },
-    onError: (error) => {
-      console.error("Upload error:", error);
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload media. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Like mutation
   const likeMutation = useMutation({
@@ -150,8 +105,9 @@ export default function Home() {
     },
   });
 
-  const handleUpload = (files: File[]) => {
-    uploadMutation.mutate(files);
+  const handleUpload = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    setShowUpload(false);
   };
 
   const handleLike = (id: number) => {
