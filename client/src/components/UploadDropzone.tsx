@@ -2,12 +2,15 @@ import { useCallback, useState } from "react";
 import { Upload, Image, Film, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface UploadDropzoneProps {
-  onUploaded?: (files: File[]) => void;
+  onUploaded?: () => void;
 }
 
 export default function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
+  const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -31,31 +34,67 @@ export default function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
       setUploading(true);
       setProgress(0);
 
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return prev + 10;
+      try {
+        const formData = new FormData();
+        validFiles.forEach((file) => {
+          formData.append("files", file);
         });
-      }, 100);
 
-      // Simulate upload delay
-      setTimeout(() => {
-        clearInterval(interval);
+        // Simulate progress while uploading
+        let currentProgress = 0;
+        const progressInterval = setInterval(() => {
+          if (currentProgress < 90) {
+            currentProgress += Math.random() * 30;
+            if (currentProgress > 90) currentProgress = 90;
+            setProgress(currentProgress);
+          }
+        }, 200);
+
+        const response = await fetch("/api/media/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        clearInterval(progressInterval);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Upload error response:", response.status, errorText);
+          throw new Error(`Upload failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("Upload successful:", result);
+
         setProgress(100);
         setUploading(false);
-        onUploaded?.(validFiles);
-        
+
+        toast({
+          title: "Upload successful",
+          description: `Uploaded ${validFiles.length} file(s)`,
+        });
+
+        onUploaded?.();
+
         // Reset after a brief delay
         setTimeout(() => {
           setProgress(0);
         }, 500);
-      }, 1200);
+      } catch (err) {
+        console.error("Upload error:", err);
+        setUploading(false);
+        setProgress(0);
+        const errorMsg = err instanceof Error ? err.message : "Upload failed";
+        setError(errorMsg);
+
+        toast({
+          title: "Upload failed",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
     },
-    [onUploaded]
+    [onUploaded, toast]
   );
 
   const handleDrop = useCallback(
