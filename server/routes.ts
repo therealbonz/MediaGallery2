@@ -60,8 +60,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload media
-  app.post("/api/media/upload", upload.array("files", 10), async (req, res) => {
+  // Upload media with multer error handling
+  app.post("/api/media/upload", (req, res, next) => {
+    upload.array("files", 10)(req, res, (err) => {
+      if (err) {
+        console.error("Multer error:", err);
+        return res.status(400).json({ error: err.message || "File upload error" });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
