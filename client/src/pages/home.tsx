@@ -256,10 +256,9 @@ export default function Home() {
             <Button
               onClick={() => setShowUpload(!showUpload)}
               data-testid="button-toggle-upload"
-              disabled={uploadMutation.isPending}
             >
               <Upload className="w-4 h-4 mr-2" />
-              {uploadMutation.isPending ? "Uploading..." : "Upload"}
+              Upload
             </Button>
           </div>
         </div>
