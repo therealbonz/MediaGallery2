@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Upload, Film } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import CubeGallery from "@/components/CubeGallery";
@@ -47,8 +47,7 @@ export default function Home() {
   };
 
   // Load full data when metadata changes
-  import { useEffect as useEff } from "react";
-  useEff(() => {
+  useEffect(() => {
     if (mediaMetadata.length > 0 && mediaList.length === 0) {
       loadFullMediaData();
     }
