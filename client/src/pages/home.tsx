@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
-import { Upload } from "lucide-react";
+import { Upload, Film } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import CubeGallery from "@/components/CubeGallery";
 import UploadDropzone from "@/components/UploadDropzone";
 import MediaGrid from "@/components/MediaGrid";
+import ShortsGallery from "@/components/ShortsGallery";
 import SearchFilterBar from "@/components/SearchFilterBar";
 import DraggableModal from "@/components/DraggableModal";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export default function Home() {
   const [likedFilter, setLikedFilter] = useState("all");
   const [modalMedia, setModalMedia] = useState<Media | null>(null);
   const [showUpload, setShowUpload] = useState(false);
+  const [viewMode, setViewMode] = useState<"gallery" | "shorts">("gallery");
 
   // Fetch media list
   const { data: mediaList = [], isLoading } = useQuery<Media[]>({
@@ -191,22 +193,66 @@ export default function Home() {
     );
   }
 
+  // If in shorts mode, show shorts gallery
+  if (viewMode === "shorts") {
+    return (
+      <div className="w-full h-screen bg-black flex flex-col">
+        {/* Header */}
+        <header className="z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
+          <div className="px-6 h-16 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-foreground" data-testid="text-shorts-title">
+              Shorts
+            </h1>
+            <Button
+              variant="outline"
+              onClick={() => setViewMode("gallery")}
+              data-testid="button-gallery-view"
+            >
+              Gallery
+            </Button>
+          </div>
+        </header>
+
+        {/* Shorts Gallery */}
+        <div className="flex-1 overflow-hidden">
+          <ShortsGallery
+            items={mediaList}
+            onLike={handleLike}
+            onDelete={handleDelete}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border backdrop-blur-md bg-background/90">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-bold text-foreground" data-testid="text-app-title">
             Media Gallery
           </h1>
-          <Button
-            onClick={() => setShowUpload(!showUpload)}
-            data-testid="button-toggle-upload"
-            disabled={uploadMutation.isPending}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {uploadMutation.isPending ? "Uploading..." : "Upload"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={mediaList.some((m) => m.mediaType === "video") ? "outline" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("shorts")}
+              disabled={!mediaList.some((m) => m.mediaType === "video")}
+              data-testid="button-shorts-view"
+            >
+              <Film className="w-4 h-4 mr-2" />
+              Shorts
+            </Button>
+            <Button
+              onClick={() => setShowUpload(!showUpload)}
+              data-testid="button-toggle-upload"
+              disabled={uploadMutation.isPending}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {uploadMutation.isPending ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
         </div>
       </header>
 
