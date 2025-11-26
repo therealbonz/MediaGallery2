@@ -35,29 +35,38 @@ export default function Home() {
       });
 
       const apiBase = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${apiBase}/api/media/upload`, {
+      const url = `${apiBase}/api/media/upload`;
+      console.log("Uploading to:", url);
+      
+      const response = await fetch(url, {
         method: "POST",
         body: formData,
       });
 
+      const responseText = await response.text();
+      console.log("Upload response status:", response.status);
+      console.log("Upload response:", responseText);
+
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error(`Upload failed (${response.status}): ${responseText}`);
       }
 
-      return response.json();
+      return JSON.parse(responseText);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Upload successful, data:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/media"] });
       setShowUpload(false);
       toast({
         title: "Upload successful",
-        description: "Your media has been uploaded",
+        description: `Uploaded ${data.length || 1} file(s)`,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload media. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload media. Please try again.",
         variant: "destructive",
       });
     },
