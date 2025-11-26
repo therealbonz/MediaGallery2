@@ -86,13 +86,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           displayOrder: 0,
         });
         
-        uploadedMedia.push(newMedia);
+        // Return only metadata without huge URLs
+        uploadedMedia.push({
+          id: newMedia.id,
+          filename: newMedia.filename,
+          mediaType: newMedia.mediaType,
+          liked: newMedia.liked,
+          displayOrder: newMedia.displayOrder,
+          createdAt: newMedia.createdAt,
+        });
       }
 
-      res.json(uploadedMedia);
+      return res.json(uploadedMedia);
     } catch (error) {
       console.error("Error uploading media:", error);
-      res.status(500).json({ error: "Failed to upload media" });
+      return res.status(500).json({ error: "Failed to upload media", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
