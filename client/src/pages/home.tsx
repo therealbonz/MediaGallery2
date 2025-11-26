@@ -21,10 +21,38 @@ export default function Home() {
   const [showUpload, setShowUpload] = useState(false);
   const [viewMode, setViewMode] = useState<"gallery" | "shorts">("gallery");
 
-  // Fetch media list
-  const { data: mediaList = [], isLoading } = useQuery<Media[]>({
+  // Fetch media list (metadata only)
+  const { data: mediaMetadata = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/media"],
   });
+
+  // Fetch full media (with URLs) for modal and display
+  const [mediaList, setMediaList] = useState<Media[]>([]);
+  
+  // Load full media data when needed
+  const loadFullMediaData = async () => {
+    if (mediaMetadata.length === 0) return;
+    const fullData: Media[] = [];
+    for (const meta of mediaMetadata) {
+      try {
+        const response = await fetch(`/api/media/${meta.id}`);
+        if (response.ok) {
+          fullData.push(await response.json());
+        }
+      } catch (err) {
+        console.error(`Failed to load media ${meta.id}:`, err);
+      }
+    }
+    setMediaList(fullData);
+  };
+
+  // Load full data when metadata changes
+  import { useEffect as useEff } from "react";
+  useEff(() => {
+    if (mediaMetadata.length > 0 && mediaList.length === 0) {
+      loadFullMediaData();
+    }
+  }, [mediaMetadata, mediaList.length]);
 
   // Upload mutation
   const uploadMutation = useMutation({

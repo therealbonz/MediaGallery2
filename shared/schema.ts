@@ -23,3 +23,4 @@ export const insertMediaSchema = createInsertSchema(media).pick({
 
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type Media = typeof media.$inferSelect;
+export type MediaMetadata = Omit<Media, 'url'>;

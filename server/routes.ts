@@ -23,14 +23,40 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get all media
+  // Get all media (without huge data URLs)
   app.get("/api/media", async (_req, res) => {
     try {
       const mediaList = await storage.getAllMedia();
-      return res.json(mediaList);
+      // Return metadata only, not the huge base64 data URLs
+      const metaList = mediaList.map(m => ({
+        id: m.id,
+        filename: m.filename,
+        mediaType: m.mediaType,
+        liked: m.liked,
+        displayOrder: m.displayOrder,
+        createdAt: m.createdAt,
+      }));
+      return res.json(metaList);
     } catch (error) {
       console.error("Error fetching media:", error);
       return res.status(500).json({ error: "Failed to fetch media", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Get individual media with data
+  app.get("/api/media/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mediaItem = await storage.getMedia(id);
+      
+      if (!mediaItem) {
+        return res.status(404).json({ error: "Media not found" });
+      }
+      
+      return res.json(mediaItem);
+    } catch (error) {
+      console.error("Error fetching media:", error);
+      return res.status(500).json({ error: "Failed to fetch media" });
     }
   });
 
