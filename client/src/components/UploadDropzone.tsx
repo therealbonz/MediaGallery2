@@ -74,7 +74,14 @@ export default function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
           description: `Uploaded ${validFiles.length} file(s)`,
         });
 
-        onUploaded?.();
+        // Call onUploaded callback if provided
+        if (onUploaded) {
+          try {
+            onUploaded();
+          } catch (callbackErr) {
+            console.error("Error in onUploaded callback:", callbackErr);
+          }
+        }
 
         // Reset after a brief delay
         setTimeout(() => {
