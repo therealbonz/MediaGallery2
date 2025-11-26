@@ -8,7 +8,7 @@ import { insertMediaSchema } from "@shared/schema";
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB max file size
+    fileSize: 10 * 1024 * 1024, // 10MB max file size for base64 encoding
   },
   fileFilter: (_req, file, cb) => {
     const isImage = file.mimetype.startsWith("image/");
@@ -71,30 +71,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uploadedMedia = [];
       
       for (const file of files) {
-        // For now, create data URLs for uploaded files
-        // TODO: Replace with object storage integration
-        const base64Data = file.buffer.toString("base64");
-        const dataUrl = `data:${file.mimetype};base64,${base64Data}`;
-        
-        const mediaType = file.mimetype.startsWith("image/") ? "image" : "video";
-        
-        const newMedia = await storage.createMedia({
-          filename: file.originalname,
-          url: dataUrl,
-          mediaType,
-          liked: false,
-          displayOrder: 0,
-        });
-        
-        // Return only metadata without huge URLs
-        uploadedMedia.push({
-          id: newMedia.id,
-          filename: newMedia.filename,
-          mediaType: newMedia.mediaType,
-          liked: newMedia.liked,
-          displayOrder: newMedia.displayOrder,
-          createdAt: newMedia.createdAt,
-        });
+        try {
+          // For now, create data URLs for uploaded files
+          // TODO: Replace with object storage integration
+          const base64Data = file.buffer.toString("base64");
+          const dataUrl = `data:${file.mimetype};base64,${base64Data}`;
+          
+          const mediaType = file.mimetype.startsWith("image/") ? "image" : "video";
+          
+          const newMedia = await storage.createMedia({
+            filename: file.originalname,
+            url: dataUrl,
+            mediaType,
+            liked: false,
+            displayOrder: 0,
+          });
+          
+          // Return only metadata without huge URLs
+          uploadedMedia.push({
+            id: newMedia.id,
+            filename: newMedia.filename,
+            mediaType: newMedia.mediaType,
+            liked: newMedia.liked,
+            displayOrder: newMedia.displayOrder,
+            createdAt: newMedia.createdAt,
+          });
+        } catch (fileError) {
+          console.error(`Error processing file ${file.originalname}:`, fileError);
+          // Continue with next file instead of failing entire upload
+        }
+      }
+
+      if (uploadedMedia.length === 0) {
+        return res.status(400).json({ error: "No files were successfully uploaded" });
       }
 
       return res.json(uploadedMedia);
