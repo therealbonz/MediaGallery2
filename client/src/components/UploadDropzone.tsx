@@ -60,7 +60,19 @@ export default function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Upload error response:", response.status, errorText);
-          throw new Error(`Upload failed: ${response.status}`);
+          let errorMessage = `Upload failed: ${response.status}`;
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.error) {
+              errorMessage = errorJson.error;
+            }
+          } catch {
+            // If not JSON, use the raw text
+            if (errorText) {
+              errorMessage = errorText;
+            }
+          }
+          throw new Error(errorMessage);
         }
 
         const result = await response.json();

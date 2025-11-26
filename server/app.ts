@@ -46,7 +46,13 @@ app.use(express.json({
   },
   limit: "100mb",
 }));
-app.use(express.urlencoded({ extended: false, limit: "100mb" }));
+// Skip urlencoded parser for multipart/form-data (let multer handle it)
+app.use((req, res, next) => {
+  if (req.is('multipart/form-data')) {
+    return next();
+  }
+  express.urlencoded({ extended: false, limit: "100mb" })(req, res, next);
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
