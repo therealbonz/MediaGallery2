@@ -27,10 +27,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/media", async (_req, res) => {
     try {
       const mediaList = await storage.getAllMedia();
-      res.json(mediaList);
+      return res.json(mediaList);
     } catch (error) {
       console.error("Error fetching media:", error);
-      res.status(500).json({ error: "Failed to fetch media" });
+      return res.status(500).json({ error: "Failed to fetch media", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
