@@ -381,6 +381,7 @@ export default function EditPage() {
                         value={newText}
                         onChange={(e) => setNewText(e.target.value)}
                         placeholder="Enter text..."
+                        className="text-black"
                         data-testid="input-new-text"
                       />
                     </div>
@@ -415,7 +416,7 @@ export default function EditPage() {
                         id="font-family"
                         value={fontFamily}
                         onChange={(e) => setFontFamily(e.target.value)}
-                        className="w-full h-9 rounded-md border border-input bg-white px-3 text-sm"
+                        className="w-full h-9 rounded-md border border-input bg-white px-3 text-sm text-black"
                         data-testid="select-font-family"
                       >
                         <option value="Arial">Arial</option>
@@ -462,6 +463,7 @@ export default function EditPage() {
                           onChange={(e) =>
                             updateSelectedLayer({ text: e.target.value })
                           }
+                          className="text-black"
                           data-testid="input-edit-text"
                         />
                       </div>
