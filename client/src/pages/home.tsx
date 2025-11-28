@@ -547,49 +547,53 @@ export default function Home() {
       {/* Modal */}
       {modalMedia && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm p-4"
           onClick={() => setModalMedia(null)}
           data-testid="modal-overlay"
         >
+          <Button
+            size="icon"
+            className="absolute top-4 right-4 z-50 h-10 w-10"
+            onClick={() => setModalMedia(null)}
+            title="Close (or click background)"
+            data-testid="button-close-modal-overlay"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+          <Button
+            size="icon"
+            className="absolute top-16 right-4 z-50 h-10 w-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/edit/${modalMedia.id}`);
+              setModalMedia(null);
+            }}
+            title="Edit image"
+            data-testid="button-edit-modal-overlay"
+          >
+            <Pencil className="w-5 h-5" />
+          </Button>
           <DraggableModal
             onClose={() => setModalMedia(null)}
             mediaUrl={modalMedia.url}
             filename={modalMedia.filename}
             mediaType={modalMedia.mediaType as "image" | "video"}
           >
-            <div className="relative">
-              {modalMedia.mediaType === "image" ? (
-                <>
-                  <img
-                    src={modalMedia.url}
-                    alt={modalMedia.filename}
-                    className="max-h-[75vh] max-w-full mx-auto rounded"
-                    draggable={false}
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="absolute bottom-4 right-4"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setModalMedia(null);
-                      navigate(`/edit/${modalMedia.id}`);
-                    }}
-                    data-testid="button-edit-image"
-                  >
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                </>
-              ) : (
-                <video
-                  src={modalMedia.url}
-                  controls
-                  autoPlay
-                  className="max-h-[75vh] max-w-full mx-auto rounded"
-                />
-              )}
-            </div>
+            {modalMedia.mediaType === "image" ? (
+              <img
+                src={modalMedia.url}
+                alt={modalMedia.filename}
+                className="max-h-[75vh] max-w-full mx-auto rounded"
+                draggable={false}
+              />
+            ) : (
+              <video
+                src={modalMedia.url}
+                controls
+                autoPlay
+                className="max-h-[75vh] max-w-full mx-auto rounded"
+              />
+            )}
           </DraggableModal>
         </div>
       )}
