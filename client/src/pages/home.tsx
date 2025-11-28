@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X } from "lucide-react";
+import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
@@ -28,6 +28,10 @@ export default function Home() {
   const [showUpload, setShowUpload] = useState(false);
   const [viewMode, setViewMode] = useState<"gallery" | "shorts">("gallery");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDownDistance, setPullDownDistance] = useState(0);
+  const touchStartRef = useRef(0);
+  const cubeRefreshKeyRef = useRef(0);
 
   // Fetch media list (metadata only)
   const { data: mediaMetadata = [], isLoading } = useQuery<any[]>({
@@ -172,7 +176,52 @@ export default function Home() {
       ...mediaList.map((m) => m.id).filter((id) => id !== draggedMediaId),
     ];
     reorderMutation.mutate(newOrder);
+    cubeRefreshKeyRef.current += 1;
   };
+
+  const handlePullToRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    setMediaList([]);
+    await loadFullMediaData();
+    cubeRefreshKeyRef.current += 1;
+    setIsRefreshing(false);
+    setPullDownDistance(0);
+  };
+
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        touchStartRef.current = e.touches[0]?.clientY || 0;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (window.scrollY === 0 && touchStartRef.current > 0) {
+        const currentY = e.touches[0]?.clientY || 0;
+        const distance = Math.max(0, currentY - touchStartRef.current);
+        setPullDownDistance(Math.min(distance, 100));
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (pullDownDistance > 60) {
+        handlePullToRefresh();
+      }
+      setPullDownDistance(0);
+      touchStartRef.current = 0;
+    };
+
+    document.addEventListener("touchstart", handleTouchStart, { passive: true });
+    document.addEventListener("touchmove", handleTouchMove, { passive: true });
+    document.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [pullDownDistance]);
 
   const filteredMedia = useMemo(() => {
     return mediaList.filter((item) => {
@@ -241,6 +290,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Pull-to-Refresh Indicator */}
+      {pullDownDistance > 0 && (
+        <div
+          className="fixed top-0 left-0 right-0 h-12 flex items-center justify-center z-50 bg-gradient-to-b from-background to-transparent transition-all"
+          style={{ opacity: Math.min(pullDownDistance / 100, 1) }}
+          data-testid="pull-refresh-indicator"
+        >
+          <RefreshCw
+            className={`w-5 h-5 text-muted-foreground ${
+              isRefreshing ? "animate-spin" : ""
+            }`}
+            style={{
+              transform: `rotate(${Math.min(pullDownDistance * 3.6, 360)}deg)`,
+              transition: isRefreshing ? "none" : "transform 0.2s ease-out",
+            }}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border backdrop-blur-md bg-background/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
@@ -376,7 +444,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Cube Gallery - Hidden on small screens */}
         {mediaList.length >= 6 && (
-          <section className="mb-8 sm:mb-12 hidden sm:block">
+          <section className="mb-8 sm:mb-12 hidden sm:block" key={`cube-${cubeRefreshKeyRef.current}`}>
             <DragDropContext onDragEnd={(result: DropResult) => {
               if (result.destination?.droppableId === "cube-gallery" && result.source.droppableId === "media-grid") {
                 const draggedMedia = filteredMedia[result.source.index];
