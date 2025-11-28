@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw } from "lucide-react";
+import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw, Share2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
@@ -30,8 +30,42 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDownDistance, setPullDownDistance] = useState(0);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const touchStartRef = useRef(0);
   const cubeRefreshKeyRef = useRef(0);
+
+  const handleShare = (platform: string) => {
+    if (!modalMedia) return;
+    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const shareUrl = `${appUrl}?shared=${encodeURIComponent(modalMedia.filename)}`;
+    const text = `Check out this ${modalMedia.mediaType} on Media Gallery: ${modalMedia.filename}`;
+    let url = "";
+    
+    switch (platform) {
+      case "twitter":
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(text)}`;
+        break;
+      case "linkedin":
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "whatsapp":
+        url = `https://wa.me/?text=${encodeURIComponent(text + " " + shareUrl)}`;
+        break;
+      case "copy":
+        navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Copied!",
+          description: "Share link copied to clipboard",
+        });
+        return;
+    }
+    if (url) {
+      window.open(url, "_blank", "width=600,height=400");
+    }
+  };
 
   // Fetch media list (metadata only)
   const { data: mediaMetadata = [], isLoading } = useQuery<any[]>({
@@ -560,9 +594,77 @@ export default function Home() {
           >
             <X className="w-5 h-5" />
           </Button>
+          <div className="absolute top-16 right-4 z-50">
+            <Button
+              size="icon"
+              className="h-10 w-10 mb-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowShareMenu(!showShareMenu);
+              }}
+              title="Share media"
+              data-testid="button-share-overlay"
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+            {showShareMenu && (
+              <div className="absolute top-12 right-0 bg-background/95 rounded-lg p-2 backdrop-blur-sm border border-border shadow-lg flex flex-col gap-1 w-40">
+                <button
+                  onClick={() => {
+                    handleShare("twitter");
+                    setShowShareMenu(false);
+                  }}
+                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                  data-testid="button-share-twitter"
+                >
+                  Twitter (X)
+                </button>
+                <button
+                  onClick={() => {
+                    handleShare("facebook");
+                    setShowShareMenu(false);
+                  }}
+                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                  data-testid="button-share-facebook"
+                >
+                  Facebook
+                </button>
+                <button
+                  onClick={() => {
+                    handleShare("linkedin");
+                    setShowShareMenu(false);
+                  }}
+                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                  data-testid="button-share-linkedin"
+                >
+                  LinkedIn
+                </button>
+                <button
+                  onClick={() => {
+                    handleShare("whatsapp");
+                    setShowShareMenu(false);
+                  }}
+                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                  data-testid="button-share-whatsapp"
+                >
+                  WhatsApp
+                </button>
+                <button
+                  onClick={() => {
+                    handleShare("copy");
+                    setShowShareMenu(false);
+                  }}
+                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                  data-testid="button-copy-link"
+                >
+                  Copy Link
+                </button>
+              </div>
+            )}
+          </div>
           <Button
             size="icon"
-            className="absolute top-16 right-4 z-50 h-10 w-10"
+            className="absolute top-32 right-4 z-50 h-10 w-10"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/edit/${modalMedia.id}`);
