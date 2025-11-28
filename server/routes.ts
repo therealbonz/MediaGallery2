@@ -1,9 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import path from "path";
 import { storage } from "./storage";
-import { insertMediaSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -23,7 +22,28 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get all media (without huge data URLs)
+  // Setup authentication
+  await setupAuth(app);
+
+  // Auth routes
+  app.get("/api/auth/user", async (req: any, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.claims?.sub) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Get all media (without huge data URLs) - public
   app.get("/api/media", async (_req, res) => {
     try {
       const mediaList = await storage.getAllMedia();
@@ -60,8 +80,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload media with multer error handling
-  app.post("/api/media/upload", (req, res, next) => {
+  // Upload media with multer error handling - requires authentication
+  app.post("/api/media/upload", isAuthenticated, (req, res, next) => {
     upload.array("files", 10)(req, res, (err) => {
       if (err) {
         console.error("Multer error:", err);
