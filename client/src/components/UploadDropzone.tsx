@@ -60,6 +60,20 @@ export default function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Upload error response:", response.status, errorText);
+          
+          // Handle 401 - redirect to login
+          if (response.status === 401) {
+            toast({
+              title: "Login required",
+              description: "Please log in to upload files",
+              variant: "destructive",
+            });
+            setTimeout(() => {
+              window.location.href = "/api/login";
+            }, 500);
+            return;
+          }
+          
           let errorMessage = `Upload failed: ${response.status}`;
           try {
             const errorJson = JSON.parse(errorText);

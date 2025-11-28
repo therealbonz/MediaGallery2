@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Upload, Film } from "lucide-react";
+import { Upload, Film, LogIn, LogOut, User } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import CubeGallery from "@/components/CubeGallery";
 import UploadDropzone from "@/components/UploadDropzone";
@@ -8,12 +8,15 @@ import ShortsGallery from "@/components/ShortsGallery";
 import SearchFilterBar from "@/components/SearchFilterBar";
 import DraggableModal from "@/components/DraggableModal";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Media } from "@shared/schema";
 
 export default function Home() {
   const { toast } = useToast();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [mediaTypeFilter, setMediaTypeFilter] = useState("all");
   const [likedFilter, setLikedFilter] = useState("all");
@@ -236,13 +239,42 @@ export default function Home() {
               <Film className="w-4 h-4 mr-2" />
               Shorts
             </Button>
-            <Button
-              onClick={() => setShowUpload(!showUpload)}
-              data-testid="button-toggle-upload"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button
+                  onClick={() => setShowUpload(!showUpload)}
+                  data-testid="button-toggle-upload"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload
+                </Button>
+                <div className="flex items-center gap-2 ml-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.location.href = "/api/logout"}
+                    data-testid="button-logout"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Button
+                onClick={() => window.location.href = "/api/login"}
+                data-testid="button-login"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login to Upload
+              </Button>
+            )}
           </div>
         </div>
       </header>
