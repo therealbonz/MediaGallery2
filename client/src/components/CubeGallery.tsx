@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
+import { Droppable } from "@hello-pangea/dnd";
 
 interface InputImage {
   src: string;
@@ -8,13 +9,14 @@ interface InputImage {
 interface CubeGalleryProps {
   images: InputImage[];
   rotate?: boolean;
+  onDrop?: (droppedIndex: number) => void;
 }
 
 interface Face {
   transform: string;
 }
 
-export default function CubeGallery({ images, rotate = true }: CubeGalleryProps) {
+export default function CubeGallery({ images, rotate = true, onDrop }: CubeGalleryProps) {
   const cubeRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const velocityRef = useRef({ x: 0, y: 0 });
@@ -126,34 +128,44 @@ export default function CubeGallery({ images, rotate = true }: CubeGalleryProps)
   );
 
   return (
-    <div
-      className="w-full flex justify-center perspective-[1200px] select-none touch-none my-24"
-      style={{
-        cursor: draggingRef.current ? "grabbing" : "grab",
-      }}
-      onMouseDown={(e) => startDrag(e.clientX, e.clientY)}
-      onMouseMove={(e) => {
-        moveDrag(e.clientX, e.clientY);
-        handleHover(e.clientX, e.clientY);
-      }}
-      onMouseUp={endDrag}
-      onMouseLeave={endDrag}
-      onTouchStart={(e) => {
-        const t = e.touches[0];
-        if (t) startDrag(t.clientX, t.clientY);
-      }}
-      onTouchMove={(e) => {
-        const t = e.touches[0];
-        if (t) {
-          moveDrag(t.clientX, t.clientY);
-          handleHover(t.clientX, t.clientY);
-        }
-      }}
-      onTouchEnd={endDrag}
-      aria-label="3D rotating image cube gallery"
-      role="region"
-      data-testid="cube-gallery"
-    >
+    <Droppable droppableId="cube-gallery" type="CUBE">
+      {(provided, snapshot) => (
+        <div
+          {...provided.droppableProps}
+          ref={provided.innerRef}
+          className={`w-full flex justify-center perspective-[1200px] select-none touch-none my-24 rounded-lg transition-colors ${
+            snapshot.isDraggingOver ? "bg-muted/50" : ""
+          }`}
+          style={{
+            cursor: draggingRef.current ? "grabbing" : "grab",
+            minHeight: "400px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onMouseDown={(e) => startDrag(e.clientX, e.clientY)}
+          onMouseMove={(e) => {
+            moveDrag(e.clientX, e.clientY);
+            handleHover(e.clientX, e.clientY);
+          }}
+          onMouseUp={endDrag}
+          onMouseLeave={endDrag}
+          onTouchStart={(e) => {
+            const t = e.touches[0];
+            if (t) startDrag(t.clientX, t.clientY);
+          }}
+          onTouchMove={(e) => {
+            const t = e.touches[0];
+            if (t) {
+              moveDrag(t.clientX, t.clientY);
+              handleHover(t.clientX, t.clientY);
+            }
+          }}
+          onTouchEnd={endDrag}
+          aria-label="3D rotating image cube gallery"
+          role="region"
+          data-testid="cube-gallery"
+        >
       <div
         ref={cubeRef}
         style={{
@@ -224,6 +236,9 @@ export default function CubeGallery({ images, rotate = true }: CubeGalleryProps)
           );
         })}
       </div>
-    </div>
+      {provided.placeholder}
+        </div>
+      )}
+    </Droppable>
   );
 }

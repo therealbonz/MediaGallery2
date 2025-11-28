@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link } from "wouter";
 import { Upload, Film, LogIn, LogOut, User } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
 import UploadDropzone from "@/components/UploadDropzone";
 import MediaGrid from "@/components/MediaGrid";
@@ -162,6 +163,14 @@ export default function Home() {
     reorderMutation.mutate(orderedIds);
   };
 
+  const handleCubeDropped = (draggedMediaId: number) => {
+    const newOrder = [
+      draggedMediaId,
+      ...mediaList.map((m) => m.id).filter((id) => id !== draggedMediaId),
+    ];
+    reorderMutation.mutate(newOrder);
+  };
+
   const filteredMedia = useMemo(() => {
     return mediaList.filter((item) => {
       const matchesSearch = item.filename
@@ -292,7 +301,31 @@ export default function Home() {
         {/* Cube Gallery */}
         {mediaList.length >= 6 && (
           <section className="mb-12">
-            <CubeGallery images={cubeImages} rotate />
+            <DragDropContext onDragEnd={(result: DropResult) => {
+              if (result.destination?.droppableId === "cube-gallery" && result.source.droppableId === "media-grid") {
+                const draggedMedia = filteredMedia[result.source.index];
+                if (draggedMedia) {
+                  handleCubeDropped(draggedMedia.id);
+                }
+              } else if (result.destination?.droppableId === "media-grid" && result.source.droppableId === "media-grid") {
+                const reorderedItems = [...filteredMedia];
+                const [removed] = reorderedItems.splice(result.source.index, 1);
+                reorderedItems.splice(result.destination.index, 0, removed);
+                const fullOrdering: number[] = [];
+                let reorderedIndex = 0;
+                for (const item of mediaList) {
+                  if (reorderedItems.some((r) => r.id === item.id) && reorderedIndex < reorderedItems.length) {
+                    fullOrdering.push(reorderedItems[reorderedIndex].id);
+                    reorderedIndex++;
+                  } else if (!filteredMedia.some((f) => f.id === item.id)) {
+                    fullOrdering.push(item.id);
+                  }
+                }
+                handleReorder(fullOrdering);
+              }
+            }}>
+              <CubeGallery images={cubeImages} rotate onDrop={handleCubeDropped} />
+            </DragDropContext>
           </section>
         )}
 
@@ -332,14 +365,38 @@ export default function Home() {
             </div>
           )}
 
-          <MediaGrid
-            items={filteredMedia}
-            allItems={mediaList}
-            onLike={handleLike}
-            onDelete={handleDelete}
-            onItemClick={setModalMedia}
-            onReorder={handleReorder}
-          />
+          <DragDropContext onDragEnd={(result: DropResult) => {
+            if (result.destination?.droppableId === "cube-gallery" && result.source.droppableId === "media-grid") {
+              const draggedMedia = filteredMedia[result.source.index];
+              if (draggedMedia) {
+                handleCubeDropped(draggedMedia.id);
+              }
+            } else if (result.destination?.droppableId === "media-grid" && result.source.droppableId === "media-grid") {
+              const reorderedItems = [...filteredMedia];
+              const [removed] = reorderedItems.splice(result.source.index, 1);
+              reorderedItems.splice(result.destination.index, 0, removed);
+              const fullOrdering: number[] = [];
+              let reorderedIndex = 0;
+              for (const item of mediaList) {
+                if (reorderedItems.some((r) => r.id === item.id) && reorderedIndex < reorderedItems.length) {
+                  fullOrdering.push(reorderedItems[reorderedIndex].id);
+                  reorderedIndex++;
+                } else if (!filteredMedia.some((f) => f.id === item.id)) {
+                  fullOrdering.push(item.id);
+                }
+              }
+              handleReorder(fullOrdering);
+            }
+          }}>
+            <MediaGrid
+              items={filteredMedia}
+              allItems={mediaList}
+              onLike={handleLike}
+              onDelete={handleDelete}
+              onItemClick={setModalMedia}
+              onReorder={handleReorder}
+            />
+          </DragDropContext>
         </section>
       </div>
 
