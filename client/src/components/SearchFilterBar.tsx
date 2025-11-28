@@ -43,9 +43,9 @@ export default function SearchFilterBar({
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Select value={mediaTypeFilter} onValueChange={onMediaTypeChange}>
-          <SelectTrigger className="w-[140px]" data-testid="select-media-type">
+          <SelectTrigger className="w-full sm:w-[140px]" data-testid="select-media-type">
             <SelectValue placeholder="Media type" />
           </SelectTrigger>
           <SelectContent>
@@ -56,7 +56,7 @@ export default function SearchFilterBar({
         </Select>
 
         <Select value={likedFilter} onValueChange={onLikedFilterChange}>
-          <SelectTrigger className="w-[140px]" data-testid="select-liked-filter">
+          <SelectTrigger className="w-full sm:w-[140px]" data-testid="select-liked-filter">
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
           <SelectContent>

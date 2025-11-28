@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Upload, Film, LogIn, LogOut, User, Pencil } from "lucide-react";
+import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { InstallButton } from "@/components/PWAComponents";
 import type { Media } from "@shared/schema";
 
 export default function Home() {
@@ -26,6 +27,7 @@ export default function Home() {
   const [modalMedia, setModalMedia] = useState<Media | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [viewMode, setViewMode] = useState<"gallery" | "shorts">("gallery");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Fetch media list (metadata only)
   const { data: mediaMetadata = [], isLoading } = useQuery<any[]>({
@@ -241,11 +243,14 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border backdrop-blur-md bg-background/90">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold text-foreground" data-testid="text-app-title">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground" data-testid="text-app-title">
             Media Gallery
           </h1>
-          <div className="flex items-center gap-2">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2">
+            <InstallButton />
             <Button
               variant={mediaList.some((m) => m.mediaType === "video") ? "outline" : "ghost"}
               size="sm"
@@ -295,13 +300,83 @@ export default function Home() {
               </Button>
             )}
           </div>
+
+          {/* Mobile Navigation */}
+          <div className="flex md:hidden items-center gap-2">
+            {isAuthenticated && (
+              <Button
+                size="icon"
+                onClick={() => setShowUpload(!showUpload)}
+                data-testid="button-toggle-upload-mobile"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              data-testid="button-mobile-menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md">
+            <div className="px-4 py-3 space-y-2">
+              <InstallButton />
+              <Button
+                variant={mediaList.some((m) => m.mediaType === "video") ? "outline" : "ghost"}
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => { setViewMode("shorts"); setMobileMenuOpen(false); }}
+                disabled={!mediaList.some((m) => m.mediaType === "video")}
+                data-testid="button-shorts-view-mobile"
+              >
+                <Film className="w-4 h-4 mr-2" />
+                Shorts
+              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start">
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => window.location.href = "/api/logout"}
+                    data-testid="button-logout-mobile"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  className="w-full justify-start"
+                  onClick={() => window.location.href = "/api/login"}
+                  data-testid="button-login-mobile"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login to Upload
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Cube Gallery */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        {/* Cube Gallery - Hidden on small screens */}
         {mediaList.length >= 6 && (
-          <section className="mb-12">
+          <section className="mb-8 sm:mb-12 hidden sm:block">
             <DragDropContext onDragEnd={(result: DropResult) => {
               if (result.destination?.droppableId === "cube-gallery" && result.source.droppableId === "media-grid") {
                 const draggedMedia = filteredMedia[result.source.index];

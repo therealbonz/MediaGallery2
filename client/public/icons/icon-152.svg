@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="152" height="152" viewBox="0 0 152 152">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+  </defs>
+  
+  <rect x="0" y="0" width="152" height="152" rx="22.8" fill="url(#grad)"/>
+  <g transform="translate(76, 76)">
+    <!-- Camera/Gallery icon -->
+    <rect x="-45.6" y="-30.400000000000002" width="91.2" height="60.800000000000004" rx="7.6000000000000005" fill="white" opacity="0.95"/>
+    <circle cx="0" cy="0" r="18.24" fill="#8b5cf6"/>
+    <circle cx="27.36" cy="-18.24" r="6.08" fill="white" opacity="0.8"/>
+    <!-- Mountain/image symbol -->
+    <path d="M-33.44 15.200000000000001 L-15.200000000000001 -3.04 L3.04 15.200000000000001 Z" fill="#6366f1" opacity="0.7"/>
+    <path d="M-7.6000000000000005 15.200000000000001 L12.16 3.04 L33.44 15.200000000000001 Z" fill="#8b5cf6" opacity="0.7"/>
+  </g>
+</svg>
