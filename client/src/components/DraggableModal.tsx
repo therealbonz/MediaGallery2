@@ -95,9 +95,7 @@ export default function DraggableModal({
       }}
     >
       <div className="absolute top-3 right-3 flex gap-2 z-10">
-        {mediaUrl && (
-          <ShareButton mediaUrl={mediaUrl} filename={filename} mediaType={mediaType} />
-        )}
+        <ShareButton mediaUrl={mediaUrl} filename={filename} mediaType={mediaType} />
         <Button
           size="icon"
           variant="secondary"
