@@ -578,7 +578,7 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Modal Overlay with everything inside */}
+      {/* Modal Overlay */}
       {modalMedia && (
         <div
           style={{
@@ -624,138 +624,191 @@ export default function Home() {
               />
             )}
           </div>
+        </div>
+      )}
 
-          {/* Close Button - top right */}
-          <button
-            style={{
-              position: "absolute",
-              top: "16px",
-              right: "16px",
-              width: "48px",
-              height: "48px",
-              padding: 0,
-              backgroundColor: "#ff0000",
-              color: "#ffffff",
-              border: "3px solid #ff0000",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "24px",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 50,
-            }}
-            onClick={() => setModalMedia(null)}
-            data-testid="button-modal-close"
-          >
-            ✕
-          </button>
+      {/* Buttons OUTSIDE modal overlay */}
+      {modalMedia && (
+        <button
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            width: "60px",
+            height: "60px",
+            backgroundColor: "#ff0000",
+            color: "#ffffff",
+            fontSize: "32px",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+            zIndex: 9999,
+          }}
+          onClick={() => setModalMedia(null)}
+          data-testid="button-close"
+        >
+          X
+        </button>
+      )}
 
-          {/* Share Button - below close */}
-          <button
-            style={{
-              position: "absolute",
-              top: "72px",
-              right: "16px",
-              width: "48px",
-              height: "48px",
-              padding: 0,
-              backgroundColor: "#0000ff",
-              color: "#ffffff",
-              border: "3px solid #0000ff",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "24px",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 50,
-            }}
-            onClick={() => setShowShareMenu(!showShareMenu)}
-            data-testid="button-modal-share"
-          >
-            ⬆
-          </button>
+      {modalMedia && (
+        <button
+          style={{
+            position: "fixed",
+            top: "90px",
+            right: "20px",
+            width: "60px",
+            height: "60px",
+            backgroundColor: "#0000ff",
+            color: "#ffffff",
+            fontSize: "32px",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowShareMenu(!showShareMenu)}
+          data-testid="button-share"
+        >
+          ⬆
+        </button>
+      )}
 
-          {/* Edit Button - below share */}
+      {modalMedia && (
+        <button
+          style={{
+            position: "fixed",
+            top: "160px",
+            right: "20px",
+            width: "60px",
+            height: "60px",
+            backgroundColor: "#00ff00",
+            color: "#000000",
+            fontSize: "32px",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+            zIndex: 9999,
+          }}
+          onClick={() => {
+            navigate(`/edit/${modalMedia.id}`);
+            setModalMedia(null);
+          }}
+          data-testid="button-edit"
+        >
+          ✎
+        </button>
+      )}
+
+      {/* Share Menu - also outside */}
+      {modalMedia && showShareMenu && (
+        <div
+          style={{
+            position: "fixed",
+            top: "160px",
+            right: "90px",
+            backgroundColor: "#ffff00",
+            border: "3px solid #000000",
+            borderRadius: "8px",
+            padding: "12px",
+            zIndex: 9999,
+          }}
+        >
           <button
-            style={{
-              position: "absolute",
-              top: "128px",
-              right: "16px",
-              width: "48px",
-              height: "48px",
-              padding: 0,
-              backgroundColor: "#00ff00",
-              color: "#000000",
-              border: "3px solid #00ff00",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "20px",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 50,
-            }}
             onClick={() => {
-              navigate(`/edit/${modalMedia.id}`);
-              setModalMedia(null);
+              handleShare("twitter");
+              setShowShareMenu(false);
             }}
-            data-testid="button-modal-edit"
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              textAlign: "left",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+            data-testid="button-twitter"
           >
-            ✎
+            Twitter
           </button>
-
-          {/* Share Menu */}
-          {showShareMenu && (
-            <div
-              style={{
-                position: "absolute",
-                top: "80px",
-                right: "16px",
-                backgroundColor: "#ffff00",
-                border: "3px solid #000000",
-                borderRadius: "4px",
-                padding: "8px",
-                minWidth: "180px",
-                zIndex: 51,
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {[
-                { label: "Twitter", action: "twitter" },
-                { label: "Facebook", action: "facebook" },
-                { label: "LinkedIn", action: "linkedin" },
-                { label: "WhatsApp", action: "whatsapp" },
-                { label: "Copy Link", action: "copy" },
-              ].map((item) => (
-                <button
-                  key={item.action}
-                  onClick={() => {
-                    handleShare(item.action);
-                    setShowShareMenu(false);
-                  }}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    backgroundColor: "transparent",
-                    color: "#000000",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
-                  data-testid={`button-${item.action}`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <button
+            onClick={() => {
+              handleShare("facebook");
+              setShowShareMenu(false);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              textAlign: "left",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+            data-testid="button-facebook"
+          >
+            Facebook
+          </button>
+          <button
+            onClick={() => {
+              handleShare("linkedin");
+              setShowShareMenu(false);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              textAlign: "left",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+            data-testid="button-linkedin"
+          >
+            LinkedIn
+          </button>
+          <button
+            onClick={() => {
+              handleShare("whatsapp");
+              setShowShareMenu(false);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              textAlign: "left",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+            data-testid="button-whatsapp"
+          >
+            WhatsApp
+          </button>
+          <button
+            onClick={() => {
+              handleShare("copy");
+              setShowShareMenu(false);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              textAlign: "left",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+            data-testid="button-copy"
+          >
+            Copy Link
+          </button>
         </div>
       )}
     </div>
