@@ -131,124 +131,103 @@ export default function DraggableModal({
         maxHeight: "90vh",
       }}
     >
-      <div className="absolute top-3 right-3 flex gap-2 z-[60]">
-        {showShare ? (
-          <div className="flex gap-2 bg-background/90 rounded-lg p-2 backdrop-blur-sm border border-border">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => handleShare("twitter")}
-              title="Share on Twitter"
-              data-testid="button-share-twitter"
-            >
-              <span className="text-xs font-bold">X</span>
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => handleShare("facebook")}
-              title="Share on Facebook"
-              data-testid="button-share-facebook"
-            >
-              <span className="text-xs font-bold">f</span>
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => handleShare("linkedin")}
-              title="Share on LinkedIn"
-              data-testid="button-share-linkedin"
-            >
-              <span className="text-xs font-bold">in</span>
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => handleShare("whatsapp")}
-              title="Share on WhatsApp"
-              data-testid="button-share-whatsapp"
-            >
-              <span className="text-xs font-bold">W</span>
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => handleShare("copy")}
-              title="Copy link"
-              data-testid="button-copy-link"
-            >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={() => setShowShare(false)}
-              data-testid="button-close-share"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowShare(true);
-              }}
-              data-testid="button-share-media"
-            >
-              <Share2 className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 rounded-full"
-              onClick={zoomOut}
-              data-testid="button-zoom-out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 rounded-full"
-              onClick={zoomIn}
-              data-testid="button-zoom-in"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 rounded-full"
-              onClick={handleReset}
-              data-testid="button-reset-view"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 rounded-full"
-              onClick={onClose}
-              data-testid="button-close-modal"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </>
-        )}
+      <div className="absolute top-3 right-3 flex gap-2 z-[60] pointer-events-auto">
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-8 w-8 rounded-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowShare(!showShare);
+          }}
+          data-testid="button-share-media"
+        >
+          <Share2 className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-8 w-8 rounded-full"
+          onClick={zoomOut}
+          data-testid="button-zoom-out"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-8 w-8 rounded-full"
+          onClick={zoomIn}
+          data-testid="button-zoom-in"
+        >
+          <ZoomIn className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-8 w-8 rounded-full"
+          onClick={handleReset}
+          data-testid="button-reset-view"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-8 w-8 rounded-full"
+          onClick={onClose}
+          data-testid="button-close-modal"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
-      {children}
+      <div className="relative">
+        {children}
+        {showShare && (
+          <div
+            className="mt-3 bg-background/95 rounded-lg p-3 backdrop-blur-sm border border-border shadow-lg flex flex-col gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => handleShare("twitter")}
+              className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+              title="Share on Twitter"
+            >
+              Twitter (X)
+            </button>
+            <button
+              onClick={() => handleShare("facebook")}
+              className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+              title="Share on Facebook"
+            >
+              Facebook
+            </button>
+            <button
+              onClick={() => handleShare("linkedin")}
+              className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+              title="Share on LinkedIn"
+            >
+              LinkedIn
+            </button>
+            <button
+              onClick={() => handleShare("whatsapp")}
+              className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+              title="Share on WhatsApp"
+            >
+              WhatsApp
+            </button>
+            <button
+              onClick={() => handleShare("copy")}
+              className="px-3 py-2 text-sm rounded hover:bg-muted text-left flex items-center gap-2"
+              title="Copy link"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              Copy Link
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="absolute bottom-3 right-3 text-xs bg-muted/80 backdrop-blur-sm px-3 py-1 rounded-full pointer-events-none">
         {Math.round(scale * 100)}%
