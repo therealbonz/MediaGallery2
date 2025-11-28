@@ -580,124 +580,130 @@ export default function Home() {
 
       {/* Modal */}
       {modalMedia && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm p-4"
-          onClick={() => setModalMedia(null)}
-          data-testid="modal-overlay"
-        >
-          <Button
-            size="icon"
-            className="absolute top-4 right-4 z-50 h-10 w-10"
+        <>
+          <div
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm p-4"
             onClick={() => setModalMedia(null)}
-            title="Close (or click background)"
-            data-testid="button-close-modal-overlay"
+            data-testid="modal-overlay"
           >
-            <X className="w-5 h-5" />
-          </Button>
-          <div className="absolute top-16 right-4 z-50">
+            <DraggableModal
+              onClose={() => setModalMedia(null)}
+              mediaUrl={modalMedia.url}
+              filename={modalMedia.filename}
+              mediaType={modalMedia.mediaType as "image" | "video"}
+            >
+              {modalMedia.mediaType === "image" ? (
+                <img
+                  src={modalMedia.url}
+                  alt={modalMedia.filename}
+                  className="max-h-[75vh] max-w-full mx-auto rounded"
+                  draggable={false}
+                />
+              ) : (
+                <video
+                  src={modalMedia.url}
+                  controls
+                  autoPlay
+                  className="max-h-[75vh] max-w-full mx-auto rounded"
+                />
+              )}
+            </DraggableModal>
+          </div>
+
+          {/* Buttons above modal */}
+          <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-auto">
             <Button
               size="icon"
-              className="h-10 w-10 mb-2"
+              className="h-10 w-10"
+              onClick={() => setModalMedia(null)}
+              title="Close"
+              data-testid="button-close-modal-overlay"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+            <div className="relative">
+              <Button
+                size="icon"
+                className="h-10 w-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowShareMenu(!showShareMenu);
+                }}
+                title="Share"
+                data-testid="button-share-overlay"
+              >
+                <Share2 className="w-5 h-5" />
+              </Button>
+              {showShareMenu && (
+                <div className="absolute top-12 right-0 bg-background/95 rounded-lg p-2 backdrop-blur-sm border border-border shadow-lg flex flex-col gap-1 w-40 z-50">
+                  <button
+                    onClick={() => {
+                      handleShare("twitter");
+                      setShowShareMenu(false);
+                    }}
+                    className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                    data-testid="button-share-twitter"
+                  >
+                    Twitter (X)
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleShare("facebook");
+                      setShowShareMenu(false);
+                    }}
+                    className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                    data-testid="button-share-facebook"
+                  >
+                    Facebook
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleShare("linkedin");
+                      setShowShareMenu(false);
+                    }}
+                    className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                    data-testid="button-share-linkedin"
+                  >
+                    LinkedIn
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleShare("whatsapp");
+                      setShowShareMenu(false);
+                    }}
+                    className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                    data-testid="button-share-whatsapp"
+                  >
+                    WhatsApp
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleShare("copy");
+                      setShowShareMenu(false);
+                    }}
+                    className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
+                    data-testid="button-copy-link"
+                  >
+                    Copy Link
+                  </button>
+                </div>
+              )}
+            </div>
+            <Button
+              size="icon"
+              className="h-10 w-10"
               onClick={(e) => {
                 e.stopPropagation();
-                setShowShareMenu(!showShareMenu);
+                navigate(`/edit/${modalMedia.id}`);
+                setModalMedia(null);
               }}
-              title="Share media"
-              data-testid="button-share-overlay"
+              title="Edit"
+              data-testid="button-edit-modal-overlay"
             >
-              <Share2 className="w-5 h-5" />
+              <Pencil className="w-5 h-5" />
             </Button>
-            {showShareMenu && (
-              <div className="absolute top-12 right-0 bg-background/95 rounded-lg p-2 backdrop-blur-sm border border-border shadow-lg flex flex-col gap-1 w-40">
-                <button
-                  onClick={() => {
-                    handleShare("twitter");
-                    setShowShareMenu(false);
-                  }}
-                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
-                  data-testid="button-share-twitter"
-                >
-                  Twitter (X)
-                </button>
-                <button
-                  onClick={() => {
-                    handleShare("facebook");
-                    setShowShareMenu(false);
-                  }}
-                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
-                  data-testid="button-share-facebook"
-                >
-                  Facebook
-                </button>
-                <button
-                  onClick={() => {
-                    handleShare("linkedin");
-                    setShowShareMenu(false);
-                  }}
-                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
-                  data-testid="button-share-linkedin"
-                >
-                  LinkedIn
-                </button>
-                <button
-                  onClick={() => {
-                    handleShare("whatsapp");
-                    setShowShareMenu(false);
-                  }}
-                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
-                  data-testid="button-share-whatsapp"
-                >
-                  WhatsApp
-                </button>
-                <button
-                  onClick={() => {
-                    handleShare("copy");
-                    setShowShareMenu(false);
-                  }}
-                  className="px-3 py-2 text-sm rounded hover:bg-muted text-left"
-                  data-testid="button-copy-link"
-                >
-                  Copy Link
-                </button>
-              </div>
-            )}
           </div>
-          <Button
-            size="icon"
-            className="absolute top-32 right-4 z-50 h-10 w-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/edit/${modalMedia.id}`);
-              setModalMedia(null);
-            }}
-            title="Edit image"
-            data-testid="button-edit-modal-overlay"
-          >
-            <Pencil className="w-5 h-5" />
-          </Button>
-          <DraggableModal
-            onClose={() => setModalMedia(null)}
-            mediaUrl={modalMedia.url}
-            filename={modalMedia.filename}
-            mediaType={modalMedia.mediaType as "image" | "video"}
-          >
-            {modalMedia.mediaType === "image" ? (
-              <img
-                src={modalMedia.url}
-                alt={modalMedia.filename}
-                className="max-h-[75vh] max-w-full mx-auto rounded"
-                draggable={false}
-              />
-            ) : (
-              <video
-                src={modalMedia.url}
-                controls
-                autoPlay
-                className="max-h-[75vh] max-w-full mx-auto rounded"
-              />
-            )}
-          </DraggableModal>
-        </div>
+        </>
       )}
     </div>
   );
