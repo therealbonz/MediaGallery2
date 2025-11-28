@@ -625,55 +625,90 @@ export default function Home() {
         </div>
       )}
 
-      {/* Modal Buttons (always on top) */}
+      {/* Modal Buttons - using absolute colors and very high z-index */}
       {modalMedia && (
-        <button
+        <div
           style={{
             position: "fixed",
-            top: "1rem",
-            right: "1rem",
-            zIndex: 50,
-            width: "2.5rem",
-            height: "2.5rem",
+            top: "16px",
+            right: "16px",
+            zIndex: 9999,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "var(--secondary)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.375rem",
-            cursor: "pointer",
+            flexDirection: "column",
+            gap: "8px",
           }}
-          onClick={() => setModalMedia(null)}
-          title="Close modal"
-          data-testid="button-modal-close"
         >
-          <X style={{ width: "1.25rem", height: "1.25rem" }} />
-        </button>
-      )}
-
-      {modalMedia && (
-        <button
-          style={{
-            position: "fixed",
-            top: "4.5rem",
-            right: "1rem",
-            zIndex: 50,
-            width: "2.5rem",
-            height: "2.5rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "var(--secondary)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.375rem",
-            cursor: "pointer",
-          }}
-          onClick={() => setShowShareMenu(!showShareMenu)}
-          title="Share media"
-          data-testid="button-modal-share"
-        >
-          <Share2 style={{ width: "1.25rem", height: "1.25rem" }} />
-        </button>
+          <button
+            style={{
+              width: "48px",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#ffffff",
+              color: "#000000",
+              border: "2px solid #333333",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "20px",
+              fontWeight: "bold",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalMedia(null);
+            }}
+            data-testid="button-modal-close"
+          >
+            X
+          </button>
+          <button
+            style={{
+              width: "48px",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#3b82f6",
+              color: "#ffffff",
+              border: "2px solid #1d4ed8",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "bold",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowShareMenu(!showShareMenu);
+            }}
+            data-testid="button-modal-share"
+          >
+            <Share2 style={{ width: "20px", height: "20px" }} />
+          </button>
+          <button
+            style={{
+              width: "48px",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#22c55e",
+              color: "#ffffff",
+              border: "2px solid #16a34a",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "bold",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/edit/${modalMedia.id}`);
+              setModalMedia(null);
+            }}
+            data-testid="button-modal-edit"
+          >
+            <Pencil style={{ width: "20px", height: "20px" }} />
+          </button>
+        </div>
       )}
 
       {/* Share Menu */}
@@ -681,24 +716,24 @@ export default function Home() {
         <div
           style={{
             position: "fixed",
-            top: "7rem",
-            right: "1rem",
-            zIndex: 51,
-            backgroundColor: "var(--background)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.5rem",
-            padding: "0.5rem",
+            top: "80px",
+            right: "70px",
+            zIndex: 10000,
+            backgroundColor: "#ffffff",
+            border: "2px solid #333333",
+            borderRadius: "8px",
+            padding: "8px",
             minWidth: "160px",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
           }}
           onClick={(e) => e.stopPropagation()}
         >
           {[
-            { label: "Twitter (X)", action: "twitter", testid: "button-twitter" },
-            { label: "Facebook", action: "facebook", testid: "button-facebook" },
-            { label: "LinkedIn", action: "linkedin", testid: "button-linkedin" },
-            { label: "WhatsApp", action: "whatsapp", testid: "button-whatsapp" },
-            { label: "Copy Link", action: "copy", testid: "button-copy" },
+            { label: "Twitter (X)", action: "twitter" },
+            { label: "Facebook", action: "facebook" },
+            { label: "LinkedIn", action: "linkedin" },
+            { label: "WhatsApp", action: "whatsapp" },
+            { label: "Copy Link", action: "copy" },
           ].map((item) => (
             <button
               key={item.action}
@@ -709,48 +744,20 @@ export default function Home() {
               style={{
                 display: "block",
                 width: "100%",
-                padding: "0.5rem 0.75rem",
+                padding: "8px 12px",
                 textAlign: "left",
                 backgroundColor: "transparent",
+                color: "#000000",
                 border: "none",
                 cursor: "pointer",
-                fontSize: "0.875rem",
+                fontSize: "14px",
               }}
-              data-testid={item.testid}
+              data-testid={`button-${item.action}`}
             >
               {item.label}
             </button>
           ))}
         </div>
-      )}
-
-      {modalMedia && (
-        <button
-          style={{
-            position: "fixed",
-            top: "8rem",
-            right: "1rem",
-            zIndex: 50,
-            width: "2.5rem",
-            height: "2.5rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "var(--secondary)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.375rem",
-            cursor: "pointer",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/edit/${modalMedia.id}`);
-            setModalMedia(null);
-          }}
-          title="Edit media"
-          data-testid="button-modal-edit"
-        >
-          <Pencil style={{ width: "1.25rem", height: "1.25rem" }} />
-        </button>
       )}
     </div>
   );
