@@ -369,7 +369,7 @@ export default function EditPage() {
               </TabsList>
 
               <TabsContent value="text" className="space-y-4 mt-4">
-                <Card>
+                <Card className="bg-white">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">Add Text</CardTitle>
                   </CardHeader>
@@ -415,7 +415,7 @@ export default function EditPage() {
                         id="font-family"
                         value={fontFamily}
                         onChange={(e) => setFontFamily(e.target.value)}
-                        className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                        className="w-full h-9 rounded-md border border-input bg-white px-3 text-sm"
                         data-testid="select-font-family"
                       >
                         <option value="Arial">Arial</option>
@@ -439,7 +439,7 @@ export default function EditPage() {
                 </Card>
 
                 {selectedLayer && (
-                  <Card>
+                  <Card className="bg-white">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm flex items-center justify-between">
                         <span>Selected Layer</span>
@@ -501,7 +501,7 @@ export default function EditPage() {
                 )}
 
                 {textLayers.length > 0 && (
-                  <Card>
+                  <Card className="bg-white">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm">Text Layers</CardTitle>
                     </CardHeader>
@@ -529,7 +529,7 @@ export default function EditPage() {
               </TabsContent>
 
               <TabsContent value="resize" className="space-y-4 mt-4">
-                <Card>
+                <Card className="bg-white">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">Resize Image</CardTitle>
                   </CardHeader>
