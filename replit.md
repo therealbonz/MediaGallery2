@@ -34,6 +34,27 @@ Preferred communication style: Simple, everyday language.
 - **UploadDropzone:** Drag-and-drop file upload with progress indication and file type validation
 - **DraggableModal:** Image viewer modal with pan, zoom, and drag capabilities
 - **SearchFilterBar:** Combined search and filter controls for media type and liked status
+- **PWAComponents:** Install prompt, offline notice, and online indicator for Progressive Web App functionality
+
+### Progressive Web App (PWA) Features
+
+**Installation:**
+- App can be installed on Android devices directly from the browser
+- Web app manifest with proper icons (72x72 to 512x512 PNG)
+- Maskable icons for adaptive icon support on Android
+- Install prompt appears when criteria are met
+
+**Offline Support:**
+- Service worker caches static assets, API data, and media files
+- Stale-while-revalidate strategy for API calls
+- Cache-first strategy for media files
+- Offline notice banner when connectivity is lost
+
+**Mobile Responsiveness:**
+- Responsive header with hamburger menu on mobile
+- Collapsible navigation for smaller screens
+- Touch-friendly UI with proper touch targets
+- Adaptive layouts for various screen sizes
 
 ### Backend Architecture
 
