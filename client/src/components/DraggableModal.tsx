@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { X, ZoomIn, ZoomOut, RotateCcw, Share2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ShareButton from "@/components/ShareButton";
+import { useToast } from "@/hooks/use-toast";
 
 interface DraggableModalProps {
   children: React.ReactNode;
@@ -18,11 +18,48 @@ export default function DraggableModal({
   filename = "media",
   mediaType = "image",
 }: DraggableModalProps) {
+  const { toast } = useToast();
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [scale, setScale] = useState(1);
+  const [showShare, setShowShare] = useState(false);
+  const [copied, setCopied] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleShare = (platform: string) => {
+    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const shareUrl = `${appUrl}?shared=${encodeURIComponent(filename)}`;
+    const text = `Check out this ${mediaType} on Media Gallery: ${filename}`;
+    let url = "";
+    
+    switch (platform) {
+      case "twitter":
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(text)}`;
+        break;
+      case "linkedin":
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "whatsapp":
+        url = `https://wa.me/?text=${encodeURIComponent(text + " " + shareUrl)}`;
+        break;
+      case "copy":
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        toast({
+          title: "Copied!",
+          description: "Share link copied to clipboard",
+        });
+        return;
+    }
+    if (url) {
+      window.open(url, "_blank", "width=600,height=400");
+    }
+  };
 
   const handleDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -95,43 +132,120 @@ export default function DraggableModal({
       }}
     >
       <div className="absolute top-3 right-3 flex gap-2 z-10">
-        <ShareButton mediaUrl={mediaUrl} filename={filename} mediaType={mediaType} />
-        <Button
-          size="icon"
-          variant="secondary"
-          className="h-8 w-8 rounded-full"
-          onClick={zoomOut}
-          data-testid="button-zoom-out"
-        >
-          <ZoomOut className="w-4 h-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="secondary"
-          className="h-8 w-8 rounded-full"
-          onClick={zoomIn}
-          data-testid="button-zoom-in"
-        >
-          <ZoomIn className="w-4 h-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="secondary"
-          className="h-8 w-8 rounded-full"
-          onClick={handleReset}
-          data-testid="button-reset-view"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="secondary"
-          className="h-8 w-8 rounded-full"
-          onClick={onClose}
-          data-testid="button-close-modal"
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        {showShare ? (
+          <div className="flex gap-2 bg-background/90 rounded-lg p-2 backdrop-blur-sm border border-border">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => handleShare("twitter")}
+              title="Share on Twitter"
+              data-testid="button-share-twitter"
+            >
+              <span className="text-xs font-bold">X</span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => handleShare("facebook")}
+              title="Share on Facebook"
+              data-testid="button-share-facebook"
+            >
+              <span className="text-xs font-bold">f</span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => handleShare("linkedin")}
+              title="Share on LinkedIn"
+              data-testid="button-share-linkedin"
+            >
+              <span className="text-xs font-bold">in</span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => handleShare("whatsapp")}
+              title="Share on WhatsApp"
+              data-testid="button-share-whatsapp"
+            >
+              <span className="text-xs font-bold">W</span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => handleShare("copy")}
+              title="Copy link"
+              data-testid="button-copy-link"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setShowShare(false)}
+              data-testid="button-close-share"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowShare(true);
+              }}
+              data-testid="button-share-media"
+            >
+              <Share2 className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8 rounded-full"
+              onClick={zoomOut}
+              data-testid="button-zoom-out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8 rounded-full"
+              onClick={zoomIn}
+              data-testid="button-zoom-in"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8 rounded-full"
+              onClick={handleReset}
+              data-testid="button-reset-view"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8 rounded-full"
+              onClick={onClose}
+              data-testid="button-close-modal"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </>
+        )}
       </div>
 
       {children}

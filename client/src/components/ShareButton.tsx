@@ -55,7 +55,10 @@ export default function ShareButton({ mediaUrl, filename, mediaType }: ShareButt
         size="icon"
         variant="secondary"
         className="h-8 w-8 rounded-full"
-        onClick={() => setShowShare(!showShare)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowShare(!showShare);
+        }}
         data-testid="button-share-media"
       >
         <Share2 className="w-4 h-4" />
@@ -63,8 +66,11 @@ export default function ShareButton({ mediaUrl, filename, mediaType }: ShareButt
 
       {showShare && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] backdrop-blur-sm"
-          onClick={() => setShowShare(false)}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] backdrop-blur-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowShare(false);
+          }}
           data-testid="share-modal-overlay"
         >
           <div
