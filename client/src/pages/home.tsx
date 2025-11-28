@@ -547,7 +547,7 @@ export default function Home() {
       {/* Modal */}
       {modalMedia && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm"
           onClick={() => setModalMedia(null)}
           data-testid="modal-overlay"
         >

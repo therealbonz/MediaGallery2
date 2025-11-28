@@ -122,7 +122,7 @@ export default function DraggableModal({
       onMouseLeave={handleUp}
       onWheel={handleWheel}
       onClick={(e) => e.stopPropagation()}
-      className="relative select-none bg-card rounded-lg shadow-2xl p-4 border border-border"
+      className="relative select-none bg-card rounded-lg shadow-2xl p-4 border border-border z-50"
       style={{
         transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`,
         cursor: dragging ? "grabbing" : "grab",
@@ -131,7 +131,7 @@ export default function DraggableModal({
         maxHeight: "90vh",
       }}
     >
-      <div className="absolute top-3 right-3 flex gap-2 z-10">
+      <div className="absolute top-3 right-3 flex gap-2 z-[60]">
         {showShare ? (
           <div className="flex gap-2 bg-background/90 rounded-lg p-2 backdrop-blur-sm border border-border">
             <Button
