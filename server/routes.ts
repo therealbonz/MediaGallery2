@@ -43,6 +43,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user (avatar, profile info)
+  app.post("/api/auth/user/update", isAuthenticated, (req, res, next) => {
+    upload.single("avatar")(req, res, (err) => {
+      if (err) {
+        console.error("Multer error:", err);
+        return res.status(400).json({ error: err.message || "File upload error" });
+      }
+      next();
+    });
+  }, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const updates: any = {};
+      
+      // Handle avatar upload
+      if (req.file) {
+        const base64Data = req.file.buffer.toString("base64");
+        const dataUrl = `data:${req.file.mimetype};base64,${base64Data}`;
+        updates.profileImageUrl = dataUrl;
+      }
+      
+      // Handle other fields
+      if (req.body.firstName) updates.firstName = req.body.firstName;
+      if (req.body.lastName) updates.lastName = req.body.lastName;
+      if (req.body.email) updates.email = req.body.email;
+      
+      const user = await storage.updateUser(userId, updates);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Failed to update user", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // Get all media (without huge data URLs) - public
   app.get("/api/media", async (_req, res) => {
     try {

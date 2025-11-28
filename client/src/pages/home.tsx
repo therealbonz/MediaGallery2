@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { Link } from "wouter";
 import { Upload, Film, LogIn, LogOut, User } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import CubeGallery from "@/components/CubeGallery";
@@ -249,12 +250,14 @@ export default function Home() {
                   Upload
                 </Button>
                 <div className="flex items-center gap-2 ml-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <Link href="/profile">
+                    <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+                      <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
