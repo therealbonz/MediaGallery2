@@ -83,8 +83,10 @@ export default function Home() {
         variant: "destructive",
       });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+      setMediaList([]);
+      await loadFullMediaData();
     },
   });
 
@@ -93,8 +95,10 @@ export default function Home() {
     mutationFn: async (id: number) => {
       return await apiRequest("DELETE", `/api/media/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+      setMediaList([]);
+      await loadFullMediaData();
       toast({
         title: "Deleted",
         description: "Media has been deleted",
@@ -109,8 +113,10 @@ export default function Home() {
     },
   });
 
-  const handleUpload = () => {
-    queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+  const handleUpload = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    setMediaList([]);
+    await loadFullMediaData();
     setShowUpload(false);
   };
 
