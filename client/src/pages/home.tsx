@@ -578,7 +578,7 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Modal Overlay */}
+      {/* Modal Overlay with everything inside */}
       {modalMedia && (
         <div
           style={{
@@ -598,165 +598,164 @@ export default function Home() {
           onClick={() => setModalMedia(null)}
           data-testid="modal-overlay"
         >
-          {/* Image/Video */}
-          {modalMedia.mediaType === "image" ? (
-            <img
-              src={modalMedia.url}
-              alt={modalMedia.filename}
-              style={{
-                maxHeight: "75vh",
-                maxWidth: "100%",
-                borderRadius: "0.5rem",
-              }}
-              draggable={false}
-            />
-          ) : (
-            <video
-              src={modalMedia.url}
-              controls
-              autoPlay
-              style={{
-                maxHeight: "75vh",
-                maxWidth: "100%",
-                borderRadius: "0.5rem",
-              }}
-            />
-          )}
-        </div>
-      )}
+          {/* Image/Video Container */}
+          <div onClick={(e) => e.stopPropagation()}>
+            {modalMedia.mediaType === "image" ? (
+              <img
+                src={modalMedia.url}
+                alt={modalMedia.filename}
+                style={{
+                  maxHeight: "75vh",
+                  maxWidth: "100%",
+                  borderRadius: "0.5rem",
+                }}
+                draggable={false}
+              />
+            ) : (
+              <video
+                src={modalMedia.url}
+                controls
+                autoPlay
+                style={{
+                  maxHeight: "75vh",
+                  maxWidth: "100%",
+                  borderRadius: "0.5rem",
+                }}
+              />
+            )}
+          </div>
 
-      {/* Modal Buttons - using absolute colors and very high z-index */}
-      {modalMedia && (
-        <div
-          style={{
-            position: "fixed",
-            top: "16px",
-            right: "16px",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-          }}
-        >
-          <button
+          {/* Buttons Container - inside overlay so definitely visible */}
+          <div
             style={{
-              width: "48px",
-              height: "48px",
+              position: "absolute",
+              top: "16px",
+              right: "16px",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#ffffff",
-              color: "#000000",
-              border: "2px solid #333333",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "20px",
-              fontWeight: "bold",
+              flexDirection: "column",
+              gap: "8px",
+              zIndex: 50,
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setModalMedia(null);
-            }}
-            data-testid="button-modal-close"
+            onClick={(e) => e.stopPropagation()}
           >
-            X
-          </button>
-          <button
-            style={{
-              width: "48px",
-              height: "48px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#3b82f6",
-              color: "#ffffff",
-              border: "2px solid #1d4ed8",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "bold",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowShareMenu(!showShareMenu);
-            }}
-            data-testid="button-modal-share"
-          >
-            <Share2 style={{ width: "20px", height: "20px" }} />
-          </button>
-          <button
-            style={{
-              width: "48px",
-              height: "48px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#22c55e",
-              color: "#ffffff",
-              border: "2px solid #16a34a",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "bold",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/edit/${modalMedia.id}`);
-              setModalMedia(null);
-            }}
-            data-testid="button-modal-edit"
-          >
-            <Pencil style={{ width: "20px", height: "20px" }} />
-          </button>
-        </div>
-      )}
-
-      {/* Share Menu */}
-      {modalMedia && showShareMenu && (
-        <div
-          style={{
-            position: "fixed",
-            top: "80px",
-            right: "70px",
-            zIndex: 10000,
-            backgroundColor: "#ffffff",
-            border: "2px solid #333333",
-            borderRadius: "8px",
-            padding: "8px",
-            minWidth: "160px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {[
-            { label: "Twitter (X)", action: "twitter" },
-            { label: "Facebook", action: "facebook" },
-            { label: "LinkedIn", action: "linkedin" },
-            { label: "WhatsApp", action: "whatsapp" },
-            { label: "Copy Link", action: "copy" },
-          ].map((item) => (
+            {/* Close Button */}
             <button
-              key={item.action}
-              onClick={() => {
-                handleShare(item.action);
-                setShowShareMenu(false);
-              }}
               style={{
-                display: "block",
-                width: "100%",
-                padding: "8px 12px",
-                textAlign: "left",
-                backgroundColor: "transparent",
-                color: "#000000",
-                border: "none",
+                width: "48px",
+                height: "48px",
+                padding: 0,
+                backgroundColor: "#ff0000",
+                color: "#ffffff",
+                border: "3px solid #ff0000",
+                borderRadius: "4px",
                 cursor: "pointer",
-                fontSize: "14px",
+                fontSize: "24px",
+                fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-              data-testid={`button-${item.action}`}
+              onClick={() => setModalMedia(null)}
+              data-testid="button-modal-close"
             >
-              {item.label}
+              ✕
             </button>
-          ))}
+
+            {/* Share Button */}
+            <button
+              style={{
+                width: "48px",
+                height: "48px",
+                padding: 0,
+                backgroundColor: "#0000ff",
+                color: "#ffffff",
+                border: "3px solid #0000ff",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              data-testid="button-modal-share"
+            >
+              S
+            </button>
+
+            {/* Edit Button */}
+            <button
+              style={{
+                width: "48px",
+                height: "48px",
+                padding: 0,
+                backgroundColor: "#00ff00",
+                color: "#000000",
+                border: "3px solid #00ff00",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => {
+                navigate(`/edit/${modalMedia.id}`);
+                setModalMedia(null);
+              }}
+              data-testid="button-modal-edit"
+            >
+              E
+            </button>
+          </div>
+
+          {/* Share Menu */}
+          {showShareMenu && (
+            <div
+              style={{
+                position: "absolute",
+                top: "80px",
+                right: "16px",
+                backgroundColor: "#ffff00",
+                border: "3px solid #000000",
+                borderRadius: "4px",
+                padding: "8px",
+                minWidth: "180px",
+                zIndex: 51,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {[
+                { label: "Twitter", action: "twitter" },
+                { label: "Facebook", action: "facebook" },
+                { label: "LinkedIn", action: "linkedin" },
+                { label: "WhatsApp", action: "whatsapp" },
+                { label: "Copy Link", action: "copy" },
+              ].map((item) => (
+                <button
+                  key={item.action}
+                  onClick={() => {
+                    handleShare(item.action);
+                    setShowShareMenu(false);
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "8px 12px",
+                    textAlign: "left",
+                    backgroundColor: "transparent",
+                    color: "#000000",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                  }}
+                  data-testid={`button-${item.action}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
