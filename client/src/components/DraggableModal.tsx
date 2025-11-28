@@ -1,13 +1,23 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ShareButton from "@/components/ShareButton";
 
 interface DraggableModalProps {
   children: React.ReactNode;
   onClose: () => void;
+  mediaUrl?: string;
+  filename?: string;
+  mediaType?: "image" | "video";
 }
 
-export default function DraggableModal({ children, onClose }: DraggableModalProps) {
+export default function DraggableModal({
+  children,
+  onClose,
+  mediaUrl = "",
+  filename = "media",
+  mediaType = "image",
+}: DraggableModalProps) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -85,6 +95,9 @@ export default function DraggableModal({ children, onClose }: DraggableModalProp
       }}
     >
       <div className="absolute top-3 right-3 flex gap-2 z-10">
+        {mediaUrl && (
+          <ShareButton mediaUrl={mediaUrl} filename={filename} mediaType={mediaType} />
+        )}
         <Button
           size="icon"
           variant="secondary"

@@ -551,7 +551,12 @@ export default function Home() {
           onClick={() => setModalMedia(null)}
           data-testid="modal-overlay"
         >
-          <DraggableModal onClose={() => setModalMedia(null)}>
+          <DraggableModal
+            onClose={() => setModalMedia(null)}
+            mediaUrl={modalMedia.url}
+            filename={modalMedia.filename}
+            mediaType={modalMedia.mediaType as "image" | "video"}
+          >
             <div className="relative">
               {modalMedia.mediaType === "image" ? (
                 <>
