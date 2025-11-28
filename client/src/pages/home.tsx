@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link } from "wouter";
-import { Upload, Film, LogIn, LogOut, User } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Upload, Film, LogIn, LogOut, User, Pencil } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
@@ -18,6 +18,7 @@ import type { Media } from "@shared/schema";
 
 export default function Home() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [mediaTypeFilter, setMediaTypeFilter] = useState("all");
@@ -408,21 +409,39 @@ export default function Home() {
           data-testid="modal-overlay"
         >
           <DraggableModal onClose={() => setModalMedia(null)}>
-            {modalMedia.mediaType === "image" ? (
-              <img
-                src={modalMedia.url}
-                alt={modalMedia.filename}
-                className="max-h-[75vh] max-w-full mx-auto rounded"
-                draggable={false}
-              />
-            ) : (
-              <video
-                src={modalMedia.url}
-                controls
-                autoPlay
-                className="max-h-[75vh] max-w-full mx-auto rounded"
-              />
-            )}
+            <div className="relative">
+              {modalMedia.mediaType === "image" ? (
+                <>
+                  <img
+                    src={modalMedia.url}
+                    alt={modalMedia.filename}
+                    className="max-h-[75vh] max-w-full mx-auto rounded"
+                    draggable={false}
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="absolute bottom-4 right-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalMedia(null);
+                      navigate(`/edit/${modalMedia.id}`);
+                    }}
+                    data-testid="button-edit-image"
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </>
+              ) : (
+                <video
+                  src={modalMedia.url}
+                  controls
+                  autoPlay
+                  className="max-h-[75vh] max-w-full mx-auto rounded"
+                />
+              )}
+            </div>
           </DraggableModal>
         </div>
       )}

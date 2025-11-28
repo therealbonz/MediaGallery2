@@ -215,6 +215,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update media image (for image editor)
+  app.post("/api/media/:id/update-image", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { imageData } = req.body;
+
+      if (!imageData || typeof imageData !== "string") {
+        return res.status(400).json({ error: "imageData is required" });
+      }
+
+      // Validate it's a data URL
+      if (!imageData.startsWith("data:image/")) {
+        return res.status(400).json({ error: "Invalid image data format" });
+      }
+
+      const updated = await storage.updateMedia(id, { url: imageData });
+
+      if (!updated) {
+        return res.status(404).json({ error: "Media not found" });
+      }
+
+      res.json({
+        id: updated.id,
+        filename: updated.filename,
+        mediaType: updated.mediaType,
+        liked: updated.liked,
+        displayOrder: updated.displayOrder,
+        createdAt: updated.createdAt,
+      });
+    } catch (error) {
+      console.error("Error updating media image:", error);
+      res.status(500).json({ error: "Failed to update media image" });
+    }
+  });
+
   // Reorder media
   app.post("/api/media/reorder", async (req, res) => {
     try {
