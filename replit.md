@@ -47,9 +47,22 @@ Preferred communication style: Simple, everyday language.
 **API Design:**
 - RESTful API pattern with `/api` prefix
 - Endpoints:
-  - `GET /api/media` - Retrieve all media items
-  - `POST /api/media/upload` - Upload new media files (supports up to 10 files, 100MB each)
-  - Additional CRUD operations defined in storage layer
+  - `GET /api/media` - Retrieve all media items (public)
+  - `GET /api/media/:id` - Retrieve single media item with full data (public)
+  - `POST /api/media/upload` - Upload new media files (requires authentication)
+  - `POST /api/media/:id/like` - Toggle like status
+  - `DELETE /api/media/:id` - Delete media item
+  - `POST /api/media/reorder` - Reorder media items
+  - `GET /api/auth/user` - Get current authenticated user
+  - `GET /api/login` - Initiate OAuth login flow
+  - `GET /api/logout` - Log out current user
+  - `GET /api/callback` - OAuth callback handler
+
+**Authentication:**
+- Replit Auth integration using OpenID Connect
+- Session-based authentication with PostgreSQL session store
+- Protected routes: Upload, delete, reorder (requires login)
+- Public routes: View media, search, filter
 
 **File Upload Strategy:**
 - Current: In-memory storage with data URL encoding (temporary solution)
@@ -67,6 +80,20 @@ Preferred communication style: Simple, everyday language.
 
 **Schema Design:**
 ```typescript
+sessions table (for Replit Auth):
+- sid: VARCHAR primary key
+- sess: JSONB, session data
+- expire: Timestamp, session expiration
+
+users table (for Replit Auth):
+- id: VARCHAR primary key (Replit user ID)
+- email: VARCHAR unique
+- firstName: VARCHAR
+- lastName: VARCHAR
+- profileImageUrl: VARCHAR
+- createdAt: Timestamp
+- updatedAt: Timestamp
+
 media table:
 - id: Auto-incrementing primary key
 - filename: Text, stores original filename
