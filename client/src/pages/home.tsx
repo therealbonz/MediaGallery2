@@ -625,89 +625,89 @@ export default function Home() {
             )}
           </div>
 
-          {/* Buttons Container - inside overlay so definitely visible */}
-          <div
+          {/* Close Button - top right */}
+          <button
             style={{
               position: "absolute",
               top: "16px",
               right: "16px",
+              width: "48px",
+              height: "48px",
+              padding: 0,
+              backgroundColor: "#ff0000",
+              color: "#ffffff",
+              border: "3px solid #ff0000",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "24px",
+              fontWeight: "bold",
               display: "flex",
-              flexDirection: "column",
-              gap: "8px",
+              alignItems: "center",
+              justifyContent: "center",
               zIndex: 50,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setModalMedia(null)}
+            data-testid="button-modal-close"
           >
-            {/* Close Button */}
-            <button
-              style={{
-                width: "48px",
-                height: "48px",
-                padding: 0,
-                backgroundColor: "#ff0000",
-                color: "#ffffff",
-                border: "3px solid #ff0000",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "24px",
-                fontWeight: "bold",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={() => setModalMedia(null)}
-              data-testid="button-modal-close"
-            >
-              ✕
-            </button>
+            ✕
+          </button>
 
-            {/* Share Button */}
-            <button
-              style={{
-                width: "48px",
-                height: "48px",
-                padding: 0,
-                backgroundColor: "#0000ff",
-                color: "#ffffff",
-                border: "3px solid #0000ff",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={() => setShowShareMenu(!showShareMenu)}
-              data-testid="button-modal-share"
-            >
-              S
-            </button>
+          {/* Share Button - below close */}
+          <button
+            style={{
+              position: "absolute",
+              top: "72px",
+              right: "16px",
+              width: "48px",
+              height: "48px",
+              padding: 0,
+              backgroundColor: "#0000ff",
+              color: "#ffffff",
+              border: "3px solid #0000ff",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "24px",
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 50,
+            }}
+            onClick={() => setShowShareMenu(!showShareMenu)}
+            data-testid="button-modal-share"
+          >
+            ⬆
+          </button>
 
-            {/* Edit Button */}
-            <button
-              style={{
-                width: "48px",
-                height: "48px",
-                padding: 0,
-                backgroundColor: "#00ff00",
-                color: "#000000",
-                border: "3px solid #00ff00",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={() => {
-                navigate(`/edit/${modalMedia.id}`);
-                setModalMedia(null);
-              }}
-              data-testid="button-modal-edit"
-            >
-              E
-            </button>
-          </div>
+          {/* Edit Button - below share */}
+          <button
+            style={{
+              position: "absolute",
+              top: "128px",
+              right: "16px",
+              width: "48px",
+              height: "48px",
+              padding: 0,
+              backgroundColor: "#00ff00",
+              color: "#000000",
+              border: "3px solid #00ff00",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "20px",
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 50,
+            }}
+            onClick={() => {
+              navigate(`/edit/${modalMedia.id}`);
+              setModalMedia(null);
+            }}
+            data-testid="button-modal-edit"
+          >
+            ✎
+          </button>
 
           {/* Share Menu */}
           {showShareMenu && (
