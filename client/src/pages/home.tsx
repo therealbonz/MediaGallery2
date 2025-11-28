@@ -580,18 +580,14 @@ export default function Home() {
 
       {/* Modal */}
       {modalMedia && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm p-4"
-            onClick={() => setModalMedia(null)}
-            data-testid="modal-overlay"
-          >
-            <DraggableModal
-              onClose={() => setModalMedia(null)}
-              mediaUrl={modalMedia.url}
-              filename={modalMedia.filename}
-              mediaType={modalMedia.mediaType as "image" | "video"}
-            >
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-40 backdrop-blur-sm p-4"
+          onClick={() => setModalMedia(null)}
+          data-testid="modal-overlay"
+        >
+          <div className="relative">
+            {/* Content */}
+            <div className="relative">
               {modalMedia.mediaType === "image" ? (
                 <img
                   src={modalMedia.url}
@@ -607,35 +603,53 @@ export default function Home() {
                   className="max-h-[75vh] max-w-full mx-auto rounded"
                 />
               )}
-            </DraggableModal>
-          </div>
+            </div>
 
-          {/* Buttons above modal */}
-          <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-auto">
+            {/* Close button - top right */}
             <Button
               size="icon"
-              className="h-10 w-10"
+              variant="secondary"
+              className="absolute -top-12 right-0 h-10 w-10"
               onClick={() => setModalMedia(null)}
               title="Close"
-              data-testid="button-close-modal-overlay"
+              data-testid="button-close-modal"
             >
               <X className="w-5 h-5" />
             </Button>
-            <div className="relative">
+
+            {/* Edit button - below close */}
+            <Button
+              size="icon"
+              variant="secondary"
+              className="absolute -top-12 right-12 h-10 w-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/edit/${modalMedia.id}`);
+                setModalMedia(null);
+              }}
+              title="Edit"
+              data-testid="button-edit-modal"
+            >
+              <Pencil className="w-5 h-5" />
+            </Button>
+
+            {/* Share button - below edit */}
+            <div className="absolute -top-12 right-24">
               <Button
                 size="icon"
+                variant="secondary"
                 className="h-10 w-10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowShareMenu(!showShareMenu);
-                }}
+                onClick={() => setShowShareMenu(!showShareMenu)}
                 title="Share"
-                data-testid="button-share-overlay"
+                data-testid="button-share-modal"
               >
                 <Share2 className="w-5 h-5" />
               </Button>
               {showShareMenu && (
-                <div className="absolute top-12 right-0 bg-background/95 rounded-lg p-2 backdrop-blur-sm border border-border shadow-lg flex flex-col gap-1 w-40 z-50">
+                <div
+                  className="absolute top-12 right-0 bg-background/95 rounded-lg p-2 backdrop-blur-sm border border-border shadow-lg flex flex-col gap-1 w-40 z-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
                     onClick={() => {
                       handleShare("twitter");
@@ -689,21 +703,8 @@ export default function Home() {
                 </div>
               )}
             </div>
-            <Button
-              size="icon"
-              className="h-10 w-10"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/edit/${modalMedia.id}`);
-                setModalMedia(null);
-              }}
-              title="Edit"
-              data-testid="button-edit-modal-overlay"
-            >
-              <Pencil className="w-5 h-5" />
-            </Button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
