@@ -8,9 +8,9 @@ import UploadDropzone from "@/components/UploadDropzone";
 import MediaGrid from "@/components/MediaGrid";
 import ShortsGallery from "@/components/ShortsGallery";
 import SearchFilterBar from "@/components/SearchFilterBar";
-import DraggableModal from "@/components/DraggableModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -584,126 +584,49 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Modal Overlay with inline buttons */}
-      {modalMedia && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.9)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 40,
-            backdropFilter: "blur(4px)",
-            padding: "1rem",
-          }}
-          onClick={() => setModalMedia(null)}
-          data-testid="modal-overlay"
-        >
-          {/* Test text to verify modal is rendering */}
-          <div
-            style={{
-              position: "fixed",
-              top: "10px",
-              left: "10px",
-              backgroundColor: "#ffff00",
-              color: "#000000",
-              padding: "20px",
-              fontSize: "24px",
-              fontWeight: "bold",
-              zIndex: 51,
-            }}
-          >
-            MODAL OPEN ✓
-          </div>
-
-          {/* Close Button */}
-          <button
-            style={{
-              position: "fixed",
-              top: "20px",
-              right: "20px",
-              width: "100px",
-              height: "100px",
-              backgroundColor: "#ff0000",
-              color: "#ffffff",
-              fontSize: "60px",
-              border: "5px solid #ffffff",
-              borderRadius: "12px",
-              cursor: "pointer",
-              zIndex: 50,
-              fontWeight: "bold",
-              boxShadow: "0 0 20px rgba(255,0,0,0.8)",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setModalMedia(null);
-            }}
-            data-testid="button-close"
-          >
-            X
-          </button>
-
-          {/* Edit Button */}
-          <button
-            style={{
-              position: "fixed",
-              top: "140px",
-              right: "20px",
-              width: "100px",
-              height: "100px",
-              backgroundColor: "#00ff00",
-              color: "#000000",
-              fontSize: "60px",
-              border: "5px solid #ffffff",
-              borderRadius: "12px",
-              cursor: "pointer",
-              zIndex: 50,
-              fontWeight: "bold",
-              boxShadow: "0 0 20px rgba(0,255,0,0.8)",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/edit/${modalMedia.id}`);
-              setModalMedia(null);
-            }}
-            data-testid="button-edit"
-          >
-            ✎
-          </button>
-
-          {/* Image/Video Container */}
-          <div onClick={(e) => e.stopPropagation()}>
-            {modalMedia.mediaType === "image" ? (
-              <img
-                src={modalMedia.url}
-                alt={modalMedia.filename}
-                style={{
-                  maxHeight: "75vh",
-                  maxWidth: "100%",
-                  borderRadius: "0.5rem",
+      {/* Modal using Shadcn Dialog */}
+      <Dialog open={!!modalMedia} onOpenChange={(open) => !open && setModalMedia(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden bg-black/95">
+          <DialogHeader className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-white text-lg">
+                {modalMedia?.filename || "Media Viewer"}
+              </DialogTitle>
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={() => {
+                  if (modalMedia) {
+                    navigate(`/edit/${modalMedia.id}`);
+                    setModalMedia(null);
+                  }
                 }}
+                className="bg-green-500 hover:bg-green-600 text-white"
+                data-testid="button-edit"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-4 pt-16">
+            {modalMedia?.mediaType === "image" ? (
+              <img
+                src={modalMedia?.url}
+                alt={modalMedia?.filename}
+                className="max-h-[75vh] max-w-full rounded object-contain"
                 draggable={false}
               />
-            ) : (
+            ) : modalMedia?.mediaType === "video" ? (
               <video
-                src={modalMedia.url}
+                src={modalMedia?.url}
                 controls
                 autoPlay
-                style={{
-                  maxHeight: "75vh",
-                  maxWidth: "100%",
-                  borderRadius: "0.5rem",
-                }}
+                className="max-h-[75vh] max-w-full rounded"
               />
-            )}
+            ) : null}
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
