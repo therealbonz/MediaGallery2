@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Heart, Trash2 } from "lucide-react";
 import type { Media } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,9 @@ interface MediaGridProps {
   onLike?: (id: number) => void;
   onDelete?: (id: number) => void;
   onItemClick?: (media: Media) => void;
-  onReorder?: (orderedIds: number[]) => void;
 }
 
-export default function MediaGrid({ items, allItems = items, onLike, onDelete, onItemClick, onReorder }: MediaGridProps) {
+export default function MediaGrid({ items, allItems = items, onLike, onDelete, onItemClick }: MediaGridProps) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   // Deterministic span assignment based on media ID
@@ -24,38 +23,6 @@ export default function MediaGrid({ items, allItems = items, onLike, onDelete, o
     });
     return map;
   }, [allItems]);
-
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-
-    // Reorder within the currently displayed (filtered) items
-    const reorderedItems = [...items];
-    const [removed] = reorderedItems.splice(result.source.index, 1);
-    reorderedItems.splice(result.destination.index, 0, removed);
-
-    // Create mapping from ID to new order in the reordered items
-    const reorderedIdMap = new Map<number, number>();
-    reorderedItems.forEach((item, index) => {
-      reorderedIdMap.set(item.id, index);
-    });
-
-    // Build full ordering: preserve non-filtered items, update filtered items
-    const fullOrdering: number[] = [];
-    let reorderedIndex = 0;
-    
-    for (const item of allItems) {
-      if (reorderedIdMap.has(item.id)) {
-        // This item was in the filtered set, use the reordered version
-        fullOrdering.push(reorderedItems[reorderedIndex].id);
-        reorderedIndex++;
-      } else {
-        // This item was not filtered, keep it in place
-        fullOrdering.push(item.id);
-      }
-    }
-
-    onReorder?.(fullOrdering);
-  };
 
   if (items.length === 0) {
     return (
@@ -82,14 +49,13 @@ export default function MediaGrid({ items, allItems = items, onLike, onDelete, o
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <Droppable droppableId="media-grid">
-        {(provided) => (
-          <div
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 auto-rows-[180px]"
-          >
+    <Droppable droppableId="media-grid">
+      {(provided) => (
+        <div
+          {...provided.droppableProps}
+          ref={provided.innerRef}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 auto-rows-[180px]"
+        >
             {items.map((media, index) => (
               <Draggable key={media.id} draggableId={String(media.id)} index={index}>
                 {(provided, snapshot) => (
@@ -175,10 +141,9 @@ export default function MediaGrid({ items, allItems = items, onLike, onDelete, o
                 )}
               </Draggable>
             ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+          {provided.placeholder}
+        </div>
+      )}
+    </Droppable>
   );
 }

@@ -564,13 +564,27 @@ export default function Home() {
               const reorderedItems = [...filteredMedia];
               const [removed] = reorderedItems.splice(result.source.index, 1);
               reorderedItems.splice(result.destination.index, 0, removed);
+              
+              // Build mapping of reordered items by ID
+              const reorderedMap = new Map<number, number>();
+              reorderedItems.forEach((item, idx) => {
+                reorderedMap.set(item.id, idx);
+              });
+              
+              // Build full ordering: reordered filtered items first, then non-filtered items
               const fullOrdering: number[] = [];
+              const filteredIds = new Set(filteredMedia.map(f => f.id));
               let reorderedIndex = 0;
+              
               for (const item of mediaList) {
-                if (reorderedItems.some((r) => r.id === item.id) && reorderedIndex < reorderedItems.length) {
-                  fullOrdering.push(reorderedItems[reorderedIndex].id);
-                  reorderedIndex++;
-                } else if (!filteredMedia.some((f) => f.id === item.id)) {
+                if (filteredIds.has(item.id)) {
+                  // Item is in filtered set, use reordered position
+                  if (reorderedIndex < reorderedItems.length) {
+                    fullOrdering.push(reorderedItems[reorderedIndex].id);
+                    reorderedIndex++;
+                  }
+                } else {
+                  // Item is not in filtered set, keep it in original position
                   fullOrdering.push(item.id);
                 }
               }
@@ -583,7 +597,6 @@ export default function Home() {
               onLike={handleLike}
               onDelete={handleDelete}
               onItemClick={setModalMedia}
-              onReorder={handleReorder}
             />
           </DragDropContext>
         </section>
