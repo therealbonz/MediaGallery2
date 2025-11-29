@@ -189,35 +189,18 @@ export default function Home() {
     mutationFn: async (orderedIds: number[]) => {
       return await apiRequest("POST", "/api/media/reorder", { orderedIds });
     },
-    onMutate: async (orderedIds) => {
-      await queryClient.cancelQueries({ queryKey: ["/api/media"] });
-      const previous = queryClient.getQueryData(["/api/media"]);
-
-      queryClient.setQueryData(["/api/media"], (old: Media[] | undefined) => {
-        if (!old) return old;
-        const ordered = orderedIds.map((id) => old.find((m) => m.id === id)).filter(Boolean) as Media[];
-        return ordered;
-      });
-
-      return { previous };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(["/api/media"], context.previous);
-      }
-    },
-    onSuccess: async () => {
-      // Clear media list and reload all data
-      setMediaList([]);
-      await queryClient.refetchQueries({ queryKey: ["/api/media"] });
-      // Reload full media data after refetch
-      setTimeout(() => {
-        loadFullMediaData();
-      }, 100);
+    onError: () => {
+      // On error, refetch to restore correct order
+      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
     },
   });
 
   const handleReorder = (orderedIds: number[]) => {
+    // Update local state immediately for live visual feedback
+    const reorderedList = orderedIds.map(id => mediaList.find(m => m.id === id)).filter(Boolean) as Media[];
+    setMediaList(reorderedList);
+    
+    // Then send to server
     reorderMutation.mutate(orderedIds);
   };
 
