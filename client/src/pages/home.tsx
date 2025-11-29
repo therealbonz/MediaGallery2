@@ -11,6 +11,7 @@ import SearchFilterBar from "@/components/SearchFilterBar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -592,25 +593,101 @@ export default function Home() {
               {modalMedia?.filename || "Media Viewer"}
             </h2>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  console.log("Share clicked");
-                  if (modalMedia) {
-                    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-                    const shareUrl = `${appUrl}?media=${modalMedia.id}`;
-                    navigator.clipboard.writeText(shareUrl).then(() => {
-                      toast({ description: "Link copied to clipboard!" });
-                    }).catch((err) => {
-                      console.error("Copy error:", err);
-                    });
-                  }
-                }}
-                className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors"
-                data-testid="button-share"
-              >
-                <Share2 className="h-4 w-4" />
-              </button>
+              <Popover open={showShareMenu} onOpenChange={setShowShareMenu}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                    data-testid="button-share"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 bg-gray-900 border-gray-700 text-white p-4">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm mb-3">Share this media</h3>
+                    
+                    {/* Media Preview */}
+                    {modalMedia && (
+                      <div className="mb-3 rounded overflow-hidden bg-black/50 p-2">
+                        {modalMedia.mediaType === "image" ? (
+                          <img
+                            src={modalMedia.url}
+                            alt="preview"
+                            className="w-full h-24 object-cover rounded"
+                          />
+                        ) : (
+                          <video
+                            src={modalMedia.url}
+                            className="w-full h-24 object-cover rounded"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Share Options */}
+                    <div className="space-y-2">
+                      {/* Copy Link */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (modalMedia) {
+                            const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+                            const shareUrl = `${appUrl}?media=${modalMedia.id}`;
+                            navigator.clipboard.writeText(shareUrl).then(() => {
+                              toast({ description: "Link copied to clipboard!" });
+                              setShowShareMenu(false);
+                            }).catch((err) => {
+                              console.error("Copy error:", err);
+                            });
+                          }
+                        }}
+                        className="w-full px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm transition-colors text-left"
+                        data-testid="button-share-copy"
+                      >
+                        📋 Copy Link
+                      </button>
+
+                      {/* Facebook Share */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (modalMedia) {
+                            const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+                            const shareUrl = `${appUrl}?media=${modalMedia.id}`;
+                            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+                            window.open(facebookUrl, "_blank", "width=600,height=400");
+                            setShowShareMenu(false);
+                          }
+                        }}
+                        className="w-full px-3 py-2 rounded bg-[#1877F2] hover:bg-[#166fe5] text-white text-sm transition-colors text-left font-medium"
+                        data-testid="button-share-facebook"
+                      >
+                        f Share on Facebook
+                      </button>
+
+                      {/* Instagram Share */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (modalMedia) {
+                            const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+                            const shareUrl = `${appUrl}?media=${modalMedia.id}`;
+                            const instagramUrl = `https://www.instagram.com/?url=${encodeURIComponent(shareUrl)}`;
+                            window.open(instagramUrl, "_blank", "width=600,height=400");
+                            setShowShareMenu(false);
+                          }
+                        }}
+                        className="w-full px-3 py-2 rounded bg-gradient-to-r from-[#833AB4] to-[#FD1D1D] hover:from-[#6F2E92] hover:to-[#E1118F] text-white text-sm transition-colors text-left font-medium"
+                        data-testid="button-share-instagram"
+                      >
+                        📷 Share on Instagram
+                      </button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <button
                 type="button"
                 onClick={() => {
