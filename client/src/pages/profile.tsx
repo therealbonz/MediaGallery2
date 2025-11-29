@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Upload } from "lucide-react";
+import { ChevronLeft, Upload, Music, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,10 @@ export default function Profile() {
 
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/api/auth/user"],
+  });
+
+  const { data: spotifyStatus } = useQuery<{ connected: boolean }>({
+    queryKey: ["/api/spotify/status"],
   });
 
   const updateMutation = useMutation({
@@ -146,6 +150,44 @@ export default function Profile() {
                 {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}
               </p>
             </div>
+          </div>
+
+          {/* Spotify Section */}
+          <div className="border-t border-border pt-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Music className="w-5 h-5 text-green-500" />
+                <label className="block text-sm font-medium text-foreground">Spotify</label>
+              </div>
+              {spotifyStatus?.connected ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" data-testid="spotify-connected-indicator" />
+                  <span className="text-sm text-muted-foreground">Connected</span>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (window.location.hostname.includes('replit.dev')) {
+                      window.open('https://replit.com/user/integrations', '_blank');
+                    } else {
+                      alert('To connect Spotify:\n1. Create a Spotify app at https://developer.spotify.com\n2. Set the redirect URI to your app URL\n3. Add your credentials to .env file');
+                    }
+                  }}
+                  data-testid="button-spotify-login"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Connect Spotify
+                </Button>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              {spotifyStatus?.connected 
+                ? "Your Spotify account is connected. You can see your now playing track and playlists on the home page."
+                : "Connect your Spotify account to see your now playing track and playlists."
+              }
+            </p>
           </div>
         </div>
       </div>
