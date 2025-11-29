@@ -569,29 +569,29 @@ export default function Home() {
         )}
 
         {/* Spotify Section */}
-        {spotifyStatus?.connected && (
-          <section className="mb-8">
-            <Collapsible open={spotifyOpen} onOpenChange={setSpotifyOpen}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Music className="w-5 h-5 text-green-500" />
-                  <h2 className="text-xl font-semibold text-foreground">Spotify</h2>
-                </div>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" data-testid="button-toggle-spotify">
-                    {spotifyOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
-                </CollapsibleTrigger>
+        <section className="mb-8">
+          <Collapsible open={spotifyOpen} onOpenChange={setSpotifyOpen}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Music className="w-5 h-5 text-green-500" />
+                <h2 className="text-xl font-semibold text-foreground">Spotify</h2>
               </div>
-              
-              <CollapsibleContent>
-                <div className="space-y-6">
-                  {/* Now Playing */}
-                  <div>
-                    <SpotifyNowPlaying />
-                  </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="icon" data-testid="button-toggle-spotify">
+                  {spotifyOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            
+            <CollapsibleContent>
+              <div className="space-y-6">
+                {/* Now Playing */}
+                <div>
+                  <SpotifyNowPlaying />
+                </div>
 
-                  {/* Tabs for Playlists and Album Art */}
+                {/* Tabs for Playlists and Album Art - Only show when connected */}
+                {spotifyStatus?.connected && (
                   <Tabs defaultValue="albums" className="w-full">
                     <TabsList className="mb-4">
                       <TabsTrigger value="albums" data-testid="tab-album-art">Recent Albums</TabsTrigger>
@@ -606,11 +606,11 @@ export default function Home() {
                       <SpotifyPlaylists />
                     </TabsContent>
                   </Tabs>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </section>
-        )}
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </section>
 
         {/* Search & Filters */}
         {mediaList.length > 0 && (
