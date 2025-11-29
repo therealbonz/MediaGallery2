@@ -187,7 +187,7 @@ export default function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
               {uploading ? "Uploading..." : "Drop files here or click to browse"}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Supports images and videos
+              Supports images and videos (up to 500MB per file)
             </p>
           </div>
 

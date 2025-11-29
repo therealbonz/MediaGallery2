@@ -44,7 +44,7 @@ app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;
   },
-  limit: "100mb",
+  limit: "500mb",
 }));
 // Skip urlencoded parser for multipart/form-data (let multer handle it)
 app.use((req, res, next) => {
@@ -52,7 +52,7 @@ app.use((req, res, next) => {
   if (contentType.includes('multipart/form-data')) {
     return next();
   }
-  express.urlencoded({ extended: false, limit: "100mb" })(req, res, next);
+  express.urlencoded({ extended: false, limit: "500mb" })(req, res, next);
 });
 
 app.use((req, res, next) => {

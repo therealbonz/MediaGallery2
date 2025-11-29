@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size for base64 encoding
+    fileSize: 500 * 1024 * 1024, // 500MB max file size per file
   },
   fileFilter: (_req, file, cb) => {
     const isImage = file.mimetype.startsWith("image/");
