@@ -314,8 +314,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
     } catch (error) {
-      console.error("Error fetching now playing:", error);
-      res.status(500).json({ error: "Failed to fetch now playing", isPlaying: false, track: null });
+      console.error("Error fetching now playing:", error instanceof Error ? error.message : error);
+      res.json({ isPlaying: false, track: null });
     }
   });
 
