@@ -368,9 +368,13 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border backdrop-blur-md bg-background/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground" data-testid="text-app-title">
+          <button 
+            onClick={() => setCurrentPage(1)}
+            className="text-xl sm:text-2xl font-bold text-foreground hover-elevate transition-opacity"
+            data-testid="button-home-link"
+          >
             Media Gallery
-          </h1>
+          </button>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
