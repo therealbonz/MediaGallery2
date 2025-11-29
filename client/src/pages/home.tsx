@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw, Share2 } from "lucide-react";
+import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
@@ -32,8 +32,10 @@ export default function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDownDistance, setPullDownDistance] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const touchStartRef = useRef(0);
   const cubeRefreshKeyRef = useRef(0);
+  const ITEMS_PER_PAGE = 25;
 
   useEffect(() => {
     if (modalMedia) {
@@ -273,13 +275,20 @@ export default function Home() {
     });
   }, [mediaList, searchQuery, mediaTypeFilter, likedFilter]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMedia.length / ITEMS_PER_PAGE);
+  const paginatedMedia = useMemo(() => {
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredMedia.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+  }, [filteredMedia, currentPage, ITEMS_PER_PAGE]);
+
   const cubeImages = useMemo(
     () =>
-      mediaList.slice(0, 6).map((m) => ({
+      paginatedMedia.slice(0, 6).map((m) => ({
         src: m.url,
         alt: m.filename,
       })),
-    [mediaList]
+    [paginatedMedia]
   );
 
   if (isLoading) {
@@ -568,13 +577,40 @@ export default function Home() {
             }
           }}>
             <MediaGrid
-              items={filteredMedia}
+              items={paginatedMedia}
               allItems={mediaList}
               onLike={handleLike}
               onDelete={handleDelete}
               onItemClick={setModalMedia}
             />
           </DragDropContext>
+
+          {/* Pagination Controls */}
+          {filteredMedia.length > 0 && (
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                data-testid="button-prev-page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                Page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                data-testid="button-next-page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </section>
       </div>
 
