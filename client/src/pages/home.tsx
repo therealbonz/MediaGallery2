@@ -206,8 +206,14 @@ export default function Home() {
         queryClient.setQueryData(["/api/media"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    onSuccess: async () => {
+      // Clear media list and reload all data
+      setMediaList([]);
+      await queryClient.refetchQueries({ queryKey: ["/api/media"] });
+      // Reload full media data after refetch
+      setTimeout(() => {
+        loadFullMediaData();
+      }, 100);
     },
   });
 
