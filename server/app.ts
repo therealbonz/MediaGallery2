@@ -40,13 +40,21 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  },
-  limit: "500mb",
-}));
-// Skip urlencoded parser for multipart/form-data (let multer handle it)
+// Parse JSON for non-multipart requests
+app.use((req, res, next) => {
+  const contentType = req.get('content-type') || '';
+  if (contentType.includes('multipart/form-data')) {
+    return next();
+  }
+  express.json({
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+    limit: "500mb",
+  })(req, res, next);
+});
+
+// Parse urlencoded for non-multipart requests
 app.use((req, res, next) => {
   const contentType = req.get('content-type') || '';
   if (contentType.includes('multipart/form-data')) {
