@@ -586,67 +586,48 @@ export default function Home() {
 
       {/* Modal using Shadcn Dialog */}
       <Dialog open={!!modalMedia} onOpenChange={(open) => !open && setModalMedia(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-4 bg-black/95 flex flex-col gap-0">
-          <div className="flex items-center justify-between mb-4 pr-8">
-            <DialogTitle className="text-white text-lg">
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black/95 flex flex-col gap-0 border-0">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
+            <h2 className="text-white text-lg font-semibold">
               {modalMedia?.filename || "Media Viewer"}
-            </DialogTitle>
+            </h2>
             <div className="flex gap-2">
-              <Button
-                size="icon"
-                variant="secondary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Share button clicked, modalMedia:", modalMedia);
-                  
+              <button
+                type="button"
+                onClick={() => {
+                  console.log("Share clicked");
                   if (modalMedia) {
-                    try {
-                      const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-                      const shareUrl = `${appUrl}?media=${modalMedia.id}`;
-                      console.log("Share URL:", shareUrl);
-                      
-                      if (navigator.clipboard) {
-                        navigator.clipboard.writeText(shareUrl).then(() => {
-                          console.log("Copied to clipboard");
-                          toast({ description: "Link copied to clipboard!" });
-                        }).catch((err) => {
-                          console.error("Copy failed:", err);
-                          toast({ description: "Failed to copy link" });
-                        });
-                      } else {
-                        console.warn("Clipboard API not available");
-                        toast({ description: "Share not supported on this device" });
-                      }
-                    } catch (err) {
-                      console.error("Share error:", err);
-                      toast({ description: "Error sharing" });
-                    }
+                    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+                    const shareUrl = `${appUrl}?media=${modalMedia.id}`;
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                      toast({ description: "Link copied to clipboard!" });
+                    }).catch((err) => {
+                      console.error("Copy error:", err);
+                    });
                   }
                 }}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
+                className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors"
                 data-testid="button-share"
               >
                 <Share2 className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="secondary"
-                onClick={(e) => {
-                  e.stopPropagation();
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  console.log("Edit clicked");
                   if (modalMedia) {
                     navigate(`/edit/${modalMedia.id}`);
                     setModalMedia(null);
                   }
                 }}
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="p-2 rounded bg-green-500 hover:bg-green-600 text-white transition-colors"
                 data-testid="button-edit"
               >
                 <Pencil className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
           </div>
-          <div className="flex items-center justify-center flex-1 overflow-hidden">
+          <div className="flex items-center justify-center flex-1 overflow-hidden p-4">
             {modalMedia?.mediaType === "image" ? (
               <img
                 src={modalMedia?.url}
