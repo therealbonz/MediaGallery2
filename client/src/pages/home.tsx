@@ -164,9 +164,13 @@ export default function Home() {
 
   const handleUpload = async () => {
     await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    await queryClient.refetchQueries({ queryKey: ["/api/media"] });
     setMediaList([]);
-    await loadFullMediaData();
     setShowUpload(false);
+    // Reload full media data after a brief delay to ensure query updated
+    setTimeout(() => {
+      loadFullMediaData();
+    }, 100);
   };
 
   const handleLike = (id: number) => {
