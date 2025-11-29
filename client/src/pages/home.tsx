@@ -596,25 +596,31 @@ export default function Home() {
                 size="icon"
                 variant="secondary"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
+                  console.log("Share button clicked, modalMedia:", modalMedia);
+                  
                   if (modalMedia) {
-                    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-                    const shareUrl = `${appUrl}?media=${modalMedia.id}`;
-                    const text = `Check out this media: ${modalMedia.filename}`;
-                    
-                    if (navigator.share) {
-                      navigator.share({
-                        title: modalMedia.filename,
-                        text: text,
-                        url: shareUrl,
-                      }).catch((err) => console.log("Share cancelled:", err));
-                    } else {
-                      navigator.clipboard.writeText(shareUrl).then(() => {
-                        toast({ description: "Link copied to clipboard!" });
-                      }).catch((err) => {
-                        console.error("Copy failed:", err);
-                        toast({ description: "Failed to copy link", variant: "destructive" });
-                      });
+                    try {
+                      const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+                      const shareUrl = `${appUrl}?media=${modalMedia.id}`;
+                      console.log("Share URL:", shareUrl);
+                      
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                          console.log("Copied to clipboard");
+                          toast({ description: "Link copied to clipboard!" });
+                        }).catch((err) => {
+                          console.error("Copy failed:", err);
+                          toast({ description: "Failed to copy link" });
+                        });
+                      } else {
+                        console.warn("Clipboard API not available");
+                        toast({ description: "Share not supported on this device" });
+                      }
+                    } catch (err) {
+                      console.error("Share error:", err);
+                      toast({ description: "Error sharing" });
                     }
                   }
                 }}
