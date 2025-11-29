@@ -586,34 +586,32 @@ export default function Home() {
 
       {/* Modal using Shadcn Dialog */}
       <Dialog open={!!modalMedia} onOpenChange={(open) => !open && setModalMedia(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden bg-black/95">
-          <DialogHeader className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-white text-lg">
-                {modalMedia?.filename || "Media Viewer"}
-              </DialogTitle>
-              <Button
-                size="icon"
-                variant="secondary"
-                onClick={() => {
-                  if (modalMedia) {
-                    navigate(`/edit/${modalMedia.id}`);
-                    setModalMedia(null);
-                  }
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white"
-                data-testid="button-edit"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="flex items-center justify-center p-4 pt-16">
+        <DialogContent className="max-w-4xl max-h-[90vh] p-4 bg-black/95 flex flex-col gap-0">
+          <div className="flex items-center justify-between mb-4 pr-8">
+            <DialogTitle className="text-white text-lg">
+              {modalMedia?.filename || "Media Viewer"}
+            </DialogTitle>
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={() => {
+                if (modalMedia) {
+                  navigate(`/edit/${modalMedia.id}`);
+                  setModalMedia(null);
+                }
+              }}
+              className="bg-green-500 hover:bg-green-600 text-white"
+              data-testid="button-edit"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center justify-center flex-1 overflow-hidden">
             {modalMedia?.mediaType === "image" ? (
               <img
                 src={modalMedia?.url}
                 alt={modalMedia?.filename}
-                className="max-h-[75vh] max-w-full rounded object-contain"
+                className="max-h-[75vh] max-w-full object-contain"
                 draggable={false}
               />
             ) : modalMedia?.mediaType === "video" ? (
@@ -621,7 +619,7 @@ export default function Home() {
                 src={modalMedia?.url}
                 controls
                 autoPlay
-                className="max-h-[75vh] max-w-full rounded"
+                className="max-h-[75vh] max-w-full"
               />
             ) : null}
           </div>
