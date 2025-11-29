@@ -584,7 +584,7 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Modal Overlay */}
+      {/* Modal Overlay with inline buttons */}
       {modalMedia && (
         <div
           style={{
@@ -604,6 +604,59 @@ export default function Home() {
           onClick={() => setModalMedia(null)}
           data-testid="modal-overlay"
         >
+          {/* Close Button */}
+          <button
+            style={{
+              position: "fixed",
+              top: "20px",
+              right: "20px",
+              width: "80px",
+              height: "80px",
+              backgroundColor: "#ff0000",
+              color: "#ffffff",
+              fontSize: "48px",
+              border: "4px solid #ffffff",
+              borderRadius: "8px",
+              cursor: "pointer",
+              zIndex: 50,
+              fontWeight: "bold",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalMedia(null);
+            }}
+            data-testid="button-close"
+          >
+            X
+          </button>
+
+          {/* Edit Button */}
+          <button
+            style={{
+              position: "fixed",
+              top: "120px",
+              right: "20px",
+              width: "80px",
+              height: "80px",
+              backgroundColor: "#00ff00",
+              color: "#000000",
+              fontSize: "48px",
+              border: "4px solid #ffffff",
+              borderRadius: "8px",
+              cursor: "pointer",
+              zIndex: 50,
+              fontWeight: "bold",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/edit/${modalMedia.id}`);
+              setModalMedia(null);
+            }}
+            data-testid="button-edit"
+          >
+            ✎
+          </button>
+
           {/* Image/Video Container */}
           <div onClick={(e) => e.stopPropagation()}>
             {modalMedia.mediaType === "image" ? (
@@ -631,56 +684,6 @@ export default function Home() {
             )}
           </div>
         </div>
-      )}
-
-      {/* Buttons OUTSIDE modal overlay */}
-      {modalMedia && (
-        <button
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            width: "60px",
-            height: "60px",
-            backgroundColor: "#ff0000",
-            color: "#ffffff",
-            fontSize: "32px",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            zIndex: 9999,
-          }}
-          onClick={() => setModalMedia(null)}
-          data-testid="button-close"
-        >
-          X
-        </button>
-      )}
-
-      {modalMedia && (
-        <button
-          style={{
-            position: "fixed",
-            top: "100px",
-            right: "20px",
-            width: "60px",
-            height: "60px",
-            backgroundColor: "#00ff00",
-            color: "#000000",
-            fontSize: "32px",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            zIndex: 9999,
-          }}
-          onClick={() => {
-            navigate(`/edit/${modalMedia.id}`);
-            setModalMedia(null);
-          }}
-          data-testid="button-edit"
-        >
-          ✎
-        </button>
       )}
     </div>
   );
