@@ -595,7 +595,8 @@ export default function Home() {
               <Button
                 size="icon"
                 variant="secondary"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (modalMedia) {
                     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
                     const shareUrl = `${appUrl}?media=${modalMedia.id}`;
@@ -608,8 +609,12 @@ export default function Home() {
                         url: shareUrl,
                       }).catch((err) => console.log("Share cancelled:", err));
                     } else {
-                      navigator.clipboard.writeText(shareUrl);
-                      toast({ description: "Link copied to clipboard!" });
+                      navigator.clipboard.writeText(shareUrl).then(() => {
+                        toast({ description: "Link copied to clipboard!" });
+                      }).catch((err) => {
+                        console.error("Copy failed:", err);
+                        toast({ description: "Failed to copy link", variant: "destructive" });
+                      });
                     }
                   }
                 }}
@@ -621,7 +626,8 @@ export default function Home() {
               <Button
                 size="icon"
                 variant="secondary"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (modalMedia) {
                     navigate(`/edit/${modalMedia.id}`);
                     setModalMedia(null);
