@@ -34,6 +34,12 @@ export default function Home() {
   const touchStartRef = useRef(0);
   const cubeRefreshKeyRef = useRef(0);
 
+  useEffect(() => {
+    if (modalMedia) {
+      console.log("Modal opened with media:", modalMedia.id);
+    }
+  }, [modalMedia]);
+
   const handleShare = (platform: string) => {
     if (!modalMedia) return;
     const appUrl = typeof window !== "undefined" ? window.location.origin : "";
@@ -655,30 +661,7 @@ export default function Home() {
         <button
           style={{
             position: "fixed",
-            top: "20px",
-            left: "20px",
-            width: "80px",
-            height: "80px",
-            backgroundColor: "#ff8800",
-            color: "#000000",
-            fontSize: "40px",
-            border: "4px solid #000000",
-            borderRadius: "8px",
-            cursor: "pointer",
-            zIndex: 9999,
-          }}
-          onClick={() => setShowShareMenu(!showShareMenu)}
-          data-testid="button-share"
-        >
-          SHARE
-        </button>
-      )}
-
-      {modalMedia && (
-        <button
-          style={{
-            position: "fixed",
-            top: "160px",
+            top: "100px",
             right: "20px",
             width: "60px",
             height: "60px",
@@ -698,118 +681,6 @@ export default function Home() {
         >
           ✎
         </button>
-      )}
-
-      {/* Share Menu - also outside */}
-      {modalMedia && showShareMenu && (
-        <div
-          style={{
-            position: "fixed",
-            top: "160px",
-            right: "90px",
-            backgroundColor: "#ffff00",
-            border: "3px solid #000000",
-            borderRadius: "8px",
-            padding: "12px",
-            zIndex: 9999,
-          }}
-        >
-          <button
-            onClick={() => {
-              handleShare("twitter");
-              setShowShareMenu(false);
-            }}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "8px",
-              textAlign: "left",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-            data-testid="button-twitter"
-          >
-            Twitter
-          </button>
-          <button
-            onClick={() => {
-              handleShare("facebook");
-              setShowShareMenu(false);
-            }}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "8px",
-              textAlign: "left",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-            data-testid="button-facebook"
-          >
-            Facebook
-          </button>
-          <button
-            onClick={() => {
-              handleShare("linkedin");
-              setShowShareMenu(false);
-            }}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "8px",
-              textAlign: "left",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-            data-testid="button-linkedin"
-          >
-            LinkedIn
-          </button>
-          <button
-            onClick={() => {
-              handleShare("whatsapp");
-              setShowShareMenu(false);
-            }}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "8px",
-              textAlign: "left",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-            data-testid="button-whatsapp"
-          >
-            WhatsApp
-          </button>
-          <button
-            onClick={() => {
-              handleShare("copy");
-              setShowShareMenu(false);
-            }}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "8px",
-              textAlign: "left",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-            data-testid="button-copy"
-          >
-            Copy Link
-          </button>
-        </div>
       )}
     </div>
   );
