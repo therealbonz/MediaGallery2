@@ -116,6 +116,11 @@ export default function Home() {
     }
   }, [mediaMetadata, mediaList.length, isLoading]);
 
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
+
 
   // Like mutation
   const likeMutation = useMutation({
