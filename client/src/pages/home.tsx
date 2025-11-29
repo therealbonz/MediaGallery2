@@ -415,19 +415,12 @@ export default function Home() {
                 </Button>
                 <div className="flex items-center gap-2 ml-2">
                   <Link href="/profile">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
-                        <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
-                        <AvatarFallback>
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      {user?.credits !== undefined && (
-                        <span className="text-xs font-medium text-muted-foreground" data-testid="text-credits">
-                          ${(user.credits / 100).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
+                    <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+                      <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
                   </Link>
                   <Button
                     variant="ghost"

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Music, Pause, Play, ExternalLink } from "lucide-react";
+import { Music, Pause, Play, ExternalLink, LogIn } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 interface Track {
   id: string;
@@ -22,9 +23,14 @@ interface NowPlayingData {
 }
 
 export default function SpotifyNowPlaying() {
+  const { data: statusData } = useQuery<{ connected: boolean }>({
+    queryKey: ["/api/spotify/status"],
+  });
+
   const { data, isLoading, error } = useQuery<NowPlayingData>({
     queryKey: ["/api/spotify/now-playing"],
     refetchInterval: 5000,
+    enabled: statusData?.connected ?? false,
   });
 
   if (isLoading) {
@@ -36,6 +42,25 @@ export default function SpotifyNowPlaying() {
             <div className="h-4 bg-green-900/30 rounded w-3/4 animate-pulse" />
             <div className="h-3 bg-green-900/30 rounded w-1/2 animate-pulse" />
           </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!statusData?.connected) {
+    return (
+      <Card className="p-4 bg-gradient-to-br from-green-900/20 to-black/40 border-green-800/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <Music className="w-6 h-6" />
+            <span className="text-sm">Connect Spotify to see what's playing</span>
+          </div>
+          <a href="https://accounts.spotify.com/authorize?client_id=your_client_id&response_type=code&redirect_uri=your_redirect_uri&scope=user-read-currently-playing%20user-read-playback-state">
+            <Button size="sm" variant="outline" data-testid="button-spotify-login">
+              <LogIn className="w-4 h-4 mr-2" />
+              Connect Spotify
+            </Button>
+          </a>
         </div>
       </Card>
     );
