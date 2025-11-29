@@ -108,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mediaType: m.mediaType,
         liked: m.liked,
         displayOrder: m.displayOrder,
+        userId: m.userId,
         createdAt: m.createdAt,
       }));
       return res.json(metaList);
@@ -135,13 +136,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload media with multer error handling - requires authentication
-  app.post("/api/media/upload", isAuthenticated, upload.array("files", 10), handleMulterError, async (req, res) => {
+  app.post("/api/media/upload", isAuthenticated, upload.array("files", 10), handleMulterError, async (req: any, res: any) => {
     try {
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files uploaded" });
       }
 
+      const userId = req.user.claims.sub;
       const uploadedMedia = [];
       
       for (const file of files) {
@@ -159,6 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mediaType,
             liked: false,
             displayOrder: 0,
+            userId,
           });
           
           // Return only metadata without huge URLs
@@ -168,6 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mediaType: newMedia.mediaType,
             liked: newMedia.liked,
             displayOrder: newMedia.displayOrder,
+            userId: newMedia.userId,
             createdAt: newMedia.createdAt,
           });
         } catch (fileError) {
@@ -392,6 +396,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recent tracks:", error);
       res.status(500).json({ error: "Failed to fetch recent tracks", tracks: [] });
+    }
+  });
+
+  // ============ USER ROUTES ============
+
+  // Get all users
+  app.get("/api/users", async (_req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  // Get user's media
+  app.get("/api/users/:userId/media", async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const userMedia = await storage.getUserMedia(userId);
+      
+      const metaList = userMedia.map(m => ({
+        id: m.id,
+        filename: m.filename,
+        mediaType: m.mediaType,
+        liked: m.liked,
+        displayOrder: m.displayOrder,
+        userId: m.userId,
+        createdAt: m.createdAt,
+      }));
+      
+      res.json(metaList);
+    } catch (error) {
+      console.error("Error fetching user media:", error);
+      res.status(500).json({ error: "Failed to fetch user media" });
     }
   });
 

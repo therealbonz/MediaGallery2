@@ -5,26 +5,31 @@ import type { Media } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
 interface MediaGridProps {
-  items: Media[];
+  items?: Media[];
+  media?: Media[];
   allItems?: Media[];
   onLike?: (id: number) => void;
   onDelete?: (id: number) => void;
   onItemClick?: (media: Media) => void;
+  hideUpload?: boolean;
 }
 
-export default function MediaGrid({ items, allItems = items, onLike, onDelete, onItemClick }: MediaGridProps) {
+export default function MediaGrid({ items, media: mediaProp, allItems, onLike, onDelete, onItemClick, hideUpload }: MediaGridProps) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  
+  const mediaItems = items || mediaProp || [];
+  const allMediaItems = allItems || mediaItems;
 
   // Deterministic span assignment based on media ID
   const spanMap = useMemo(() => {
     const map = new Map<number, number>();
-    allItems.forEach((media) => {
-      map.set(media.id, (media.id % 3 === 0) ? 2 : 1);
+    allMediaItems.forEach((m) => {
+      map.set(m.id, (m.id % 3 === 0) ? 2 : 1);
     });
     return map;
-  }, [allItems]);
+  }, [allMediaItems]);
 
-  if (items.length === 0) {
+  if (!mediaItems || mediaItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -56,7 +61,7 @@ export default function MediaGrid({ items, allItems = items, onLike, onDelete, o
           ref={provided.innerRef}
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 auto-rows-[180px]"
         >
-            {items.map((media, index) => (
+            {mediaItems.map((media, index) => (
               <Draggable key={media.id} draggableId={String(media.id)} index={index}>
                 {(provided, snapshot) => (
                   <div

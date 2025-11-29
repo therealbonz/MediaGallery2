@@ -35,6 +35,7 @@ export const media = pgTable("media", {
   mediaType: text("media_type").notNull(),
   liked: boolean("liked").notNull().default(false),
   displayOrder: integer("display_order").notNull().default(0),
+  userId: varchar("user_id").references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -44,6 +45,7 @@ export const insertMediaSchema = createInsertSchema(media).pick({
   mediaType: true,
   liked: true,
   displayOrder: true,
+  userId: true,
 });
 
 export type InsertMedia = z.infer<typeof insertMediaSchema>;

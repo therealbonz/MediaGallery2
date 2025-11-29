@@ -407,6 +407,11 @@ export default function Home() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
             <InstallButton />
+            <Link href="/users">
+              <Button variant="ghost" size="sm" data-testid="button-users">
+                Users
+              </Button>
+            </Link>
             <Button
               variant={mediaList.some((m) => m.mediaType === "video") ? "outline" : "ghost"}
               size="sm"
@@ -484,6 +489,11 @@ export default function Home() {
           <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md">
             <div className="px-4 py-3 space-y-2">
               <InstallButton />
+              <Link href="/users" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="sm" className="w-full justify-start" data-testid="button-users-mobile">
+                  Users
+                </Button>
+              </Link>
               <Button
                 variant={mediaList.some((m) => m.mediaType === "video") ? "outline" : "ghost"}
                 size="sm"

@@ -8,6 +8,8 @@ import { InstallPrompt, OfflineNotice } from "@/components/PWAComponents";
 import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import EditPage from "@/pages/edit";
+import Users from "@/pages/users";
+import UserPage from "@/pages/user";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +18,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/profile" component={Profile} />
       <Route path="/edit/:id" component={EditPage} />
+      <Route path="/users" component={Users} />
+      <Route path="/users/:userId" component={UserPage} />
       <Route component={NotFound} />
     </Switch>
   );

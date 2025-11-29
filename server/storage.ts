@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { db } from "./db";
 import { media, users } from "@shared/schema";
 import { type Media, type InsertMedia, type User, type UpsertUser } from "@shared/schema";
@@ -13,6 +13,8 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
+  getUserMedia(userId: string): Promise<Media[]>;
 }
 
 export class DbStorage implements IStorage {
@@ -87,6 +89,18 @@ export class DbStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return result[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(users.createdAt);
+  }
+
+  async getUserMedia(userId: string): Promise<Media[]> {
+    return await db
+      .select()
+      .from(media)
+      .where(eq(media.userId, userId))
+      .orderBy(media.displayOrder, desc(media.createdAt));
   }
 }
 
