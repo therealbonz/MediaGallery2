@@ -591,20 +591,48 @@ export default function Home() {
             <DialogTitle className="text-white text-lg">
               {modalMedia?.filename || "Media Viewer"}
             </DialogTitle>
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={() => {
-                if (modalMedia) {
-                  navigate(`/edit/${modalMedia.id}`);
-                  setModalMedia(null);
-                }
-              }}
-              className="bg-green-500 hover:bg-green-600 text-white"
-              data-testid="button-edit"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={() => {
+                  if (modalMedia) {
+                    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+                    const shareUrl = `${appUrl}?media=${modalMedia.id}`;
+                    const text = `Check out this media: ${modalMedia.filename}`;
+                    
+                    if (navigator.share) {
+                      navigator.share({
+                        title: modalMedia.filename,
+                        text: text,
+                        url: shareUrl,
+                      }).catch((err) => console.log("Share cancelled:", err));
+                    } else {
+                      navigator.clipboard.writeText(shareUrl);
+                      toast({ description: "Link copied to clipboard!" });
+                    }
+                  }
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+                data-testid="button-share"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="secondary"
+                onClick={() => {
+                  if (modalMedia) {
+                    navigate(`/edit/${modalMedia.id}`);
+                    setModalMedia(null);
+                  }
+                }}
+                className="bg-green-500 hover:bg-green-600 text-white"
+                data-testid="button-edit"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <div className="flex items-center justify-center flex-1 overflow-hidden">
             {modalMedia?.mediaType === "image" ? (
