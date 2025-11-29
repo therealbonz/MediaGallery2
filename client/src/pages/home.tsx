@@ -97,25 +97,33 @@ export default function Home() {
   const [isLoadingMedia, setIsLoadingMedia] = useState(true);
   const hasLoadedRef = useRef(false);
   
-  // Load full media data when needed
+  // Load full media data when needed (parallel with concurrency limit)
   const loadFullMediaData = async (metadata: any[]) => {
     if (metadata.length === 0) {
       setIsLoadingMedia(false);
       return;
     }
     setIsLoadingMedia(true);
-    const fullData: Media[] = [];
-    for (const meta of metadata) {
-      try {
-        const response = await fetch(`/api/media/${meta.id}`);
-        if (response.ok) {
-          fullData.push(await response.json());
+    const fullData: Media[] = new Array(metadata.length).fill(null);
+    
+    // Fetch up to 5 in parallel for better mobile performance
+    const concurrency = 5;
+    for (let i = 0; i < metadata.length; i += concurrency) {
+      const batch = metadata.slice(i, i + concurrency);
+      const promises = batch.map(async (meta, idx) => {
+        try {
+          const response = await fetch(`/api/media/${meta.id}`);
+          if (response.ok) {
+            fullData[i + idx] = await response.json();
+          }
+        } catch (err) {
+          console.error(`Failed to load media ${meta.id}:`, err);
         }
-      } catch (err) {
-        console.error(`Failed to load media ${meta.id}:`, err);
-      }
+      });
+      await Promise.all(promises);
     }
-    setMediaList(fullData);
+    
+    setMediaList(fullData.filter(Boolean));
     setIsLoadingMedia(false);
   };
 
@@ -321,8 +329,13 @@ export default function Home() {
 
   if (isLoading || isLoadingMedia) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center space-y-4">
+          <div className="inline-block">
+            <div className="w-12 h-12 border-4 border-muted-foreground/20 border-t-foreground rounded-full animate-spin" />
+          </div>
+          <div className="text-lg text-muted-foreground">Loading your media...</div>
+        </div>
       </div>
     );
   }
