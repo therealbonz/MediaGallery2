@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
@@ -20,6 +20,21 @@ const upload = multer({
     }
   },
 });
+
+// Multer error handling middleware
+function handleMulterError(err: any, _req: any, res: any, next: NextFunction) {
+  if (err instanceof multer.MulterError) {
+    console.error("Multer error:", err);
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ error: "File too large (max 500MB)" });
+    }
+    return res.status(400).json({ error: err.message || "File upload error" });
+  } else if (err) {
+    console.error("Upload error:", err);
+    return res.status(400).json({ error: err.message || "File upload error" });
+  }
+  next();
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
@@ -119,15 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload media with multer error handling - requires authentication
-  app.post("/api/media/upload", isAuthenticated, (req, res, next) => {
-    upload.array("files", 10)(req, res, (err) => {
-      if (err) {
-        console.error("Multer error:", err);
-        return res.status(400).json({ error: err.message || "File upload error" });
-      }
-      next();
-    });
-  }, async (req, res) => {
+  app.post("/api/media/upload", isAuthenticated, upload.array("files", 10), handleMulterError, async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
