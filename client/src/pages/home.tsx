@@ -655,14 +655,14 @@ export default function Home() {
         <button
           style={{
             position: "fixed",
-            top: "90px",
-            right: "20px",
-            width: "60px",
-            height: "60px",
-            backgroundColor: "#0000ff",
-            color: "#ffffff",
-            fontSize: "32px",
-            border: "none",
+            top: "20px",
+            left: "20px",
+            width: "80px",
+            height: "80px",
+            backgroundColor: "#ff8800",
+            color: "#000000",
+            fontSize: "40px",
+            border: "4px solid #000000",
             borderRadius: "8px",
             cursor: "pointer",
             zIndex: 9999,
@@ -670,7 +670,7 @@ export default function Home() {
           onClick={() => setShowShareMenu(!showShareMenu)}
           data-testid="button-share"
         >
-          ⬆
+          SHARE
         </button>
       )}
 
