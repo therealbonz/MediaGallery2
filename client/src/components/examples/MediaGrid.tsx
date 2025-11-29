@@ -11,6 +11,7 @@ export default function MediaGridExample() {
       mediaType: "image",
       liked: false,
       displayOrder: 0,
+      userId: null,
       createdAt: new Date(),
     },
     {
@@ -20,6 +21,7 @@ export default function MediaGridExample() {
       mediaType: "image",
       liked: true,
       displayOrder: 1,
+      userId: null,
       createdAt: new Date(),
     },
     {
@@ -29,6 +31,7 @@ export default function MediaGridExample() {
       mediaType: "image",
       liked: false,
       displayOrder: 2,
+      userId: null,
       createdAt: new Date(),
     },
     {
@@ -38,6 +41,7 @@ export default function MediaGridExample() {
       mediaType: "image",
       liked: false,
       displayOrder: 3,
+      userId: null,
       createdAt: new Date(),
     },
     {
@@ -47,6 +51,7 @@ export default function MediaGridExample() {
       mediaType: "image",
       liked: true,
       displayOrder: 4,
+      userId: null,
       createdAt: new Date(),
     },
   ]);

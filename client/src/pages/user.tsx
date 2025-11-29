@@ -10,25 +10,19 @@ import type { User, Media } from "@shared/schema";
 export default function UserPage() {
   const { userId } = useParams<{ userId: string }>();
 
-  const { data: user, isLoading: userLoading } = useQuery<User>({
-    queryKey: [`/api/auth/user`],
-    enabled: false,
-  });
-
   // Get all users to find this one
-  const { data: users = [] } = useQuery<User[]>({
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
 
   const currentUser = users.find(u => u.id === userId);
 
-  const { data: mediaList = [] } = useQuery<Media[]>({
+  const { data: mediaList = [], isLoading: mediaLoading } = useQuery<Media[]>({
     queryKey: [`/api/users/${userId}/media`],
+    enabled: !!userId,
   });
 
-  const isLoading = userLoading;
-
-  if (isLoading) {
+  if (usersLoading || mediaLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-lg text-muted-foreground">Loading...</div>
