@@ -48,6 +48,16 @@ export default function SpotifyNowPlaying() {
   }
 
   if (!statusData?.connected) {
+    const handleSpotifyConnect = () => {
+      // On Replit, open the integrations page to connect Spotify
+      if (window.location.hostname.includes('replit.dev')) {
+        window.open('https://replit.com/user/integrations', '_blank');
+      } else {
+        // On VPS, show instructions
+        alert('To connect Spotify:\n1. Create a Spotify app at https://developer.spotify.com\n2. Set the redirect URI to your app URL\n3. Add your credentials to .env file');
+      }
+    };
+
     return (
       <Card className="p-4 bg-gradient-to-br from-green-900/20 to-black/40 border-green-800/30">
         <div className="flex items-center justify-between">
@@ -55,12 +65,15 @@ export default function SpotifyNowPlaying() {
             <Music className="w-6 h-6" />
             <span className="text-sm">Connect Spotify to see what's playing</span>
           </div>
-          <a href="https://accounts.spotify.com/authorize?client_id=your_client_id&response_type=code&redirect_uri=your_redirect_uri&scope=user-read-currently-playing%20user-read-playback-state">
-            <Button size="sm" variant="outline" data-testid="button-spotify-login">
-              <LogIn className="w-4 h-4 mr-2" />
-              Connect Spotify
-            </Button>
-          </a>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={handleSpotifyConnect}
+            data-testid="button-spotify-login"
+          >
+            <LogIn className="w-4 h-4 mr-2" />
+            Connect Spotify
+          </Button>
         </div>
       </Card>
     );
