@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { getSpotifyClient, isSpotifyConnected } from "./spotify";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -271,6 +272,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error reordering media:", error);
       res.status(500).json({ error: "Failed to reorder media" });
+    }
+  });
+
+  // ============ SPOTIFY ROUTES ============
+
+  // Check Spotify connection status
+  app.get("/api/spotify/status", async (_req, res) => {
+    try {
+      const connected = await isSpotifyConnected();
+      res.json({ connected });
+    } catch (error) {
+      res.json({ connected: false });
+    }
+  });
+
+  // Get currently playing track
+  app.get("/api/spotify/now-playing", async (_req, res) => {
+    try {
+      const spotify = await getSpotifyClient();
+      const playbackState = await spotify.player.getCurrentlyPlayingTrack();
+      
+      if (!playbackState || !playbackState.item) {
+        return res.json({ isPlaying: false, track: null });
+      }
+
+      const track = playbackState.item as any;
+      res.json({
+        isPlaying: playbackState.is_playing,
+        track: {
+          id: track.id,
+          name: track.name,
+          artists: track.artists?.map((a: any) => a.name).join(", ") || "Unknown Artist",
+          album: track.album?.name || "Unknown Album",
+          albumArt: track.album?.images?.[0]?.url || null,
+          albumArtSmall: track.album?.images?.[2]?.url || track.album?.images?.[0]?.url || null,
+          duration: track.duration_ms,
+          progress: playbackState.progress_ms,
+          uri: track.uri,
+          externalUrl: track.external_urls?.spotify,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching now playing:", error);
+      res.status(500).json({ error: "Failed to fetch now playing", isPlaying: false, track: null });
+    }
+  });
+
+  // Get user's playlists
+  app.get("/api/spotify/playlists", async (_req, res) => {
+    try {
+      const spotify = await getSpotifyClient();
+      const playlists = await spotify.currentUser.playlists.playlists(50);
+      
+      res.json({
+        playlists: playlists.items.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          image: p.images?.[0]?.url || null,
+          trackCount: p.tracks?.total || 0,
+          owner: p.owner?.display_name || "Unknown",
+          uri: p.uri,
+          externalUrl: p.external_urls?.spotify,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+      res.status(500).json({ error: "Failed to fetch playlists", playlists: [] });
+    }
+  });
+
+  // Get playlist tracks with album art
+  app.get("/api/spotify/playlists/:id/tracks", async (req, res) => {
+    try {
+      const spotify = await getSpotifyClient();
+      const playlistId = req.params.id;
+      const tracks = await spotify.playlists.getPlaylistItems(playlistId, undefined, undefined, 50);
+      
+      res.json({
+        tracks: tracks.items
+          .filter((item: any) => item.track)
+          .map((item: any) => ({
+            id: item.track.id,
+            name: item.track.name,
+            artists: item.track.artists?.map((a: any) => a.name).join(", ") || "Unknown Artist",
+            album: item.track.album?.name || "Unknown Album",
+            albumArt: item.track.album?.images?.[0]?.url || null,
+            albumArtSmall: item.track.album?.images?.[2]?.url || item.track.album?.images?.[0]?.url || null,
+            duration: item.track.duration_ms,
+            uri: item.track.uri,
+            addedAt: item.added_at,
+          })),
+      });
+    } catch (error) {
+      console.error("Error fetching playlist tracks:", error);
+      res.status(500).json({ error: "Failed to fetch playlist tracks", tracks: [] });
+    }
+  });
+
+  // Get recently played tracks
+  app.get("/api/spotify/recent", async (_req, res) => {
+    try {
+      const spotify = await getSpotifyClient();
+      const recent = await spotify.player.getRecentlyPlayedTracks(20);
+      
+      res.json({
+        tracks: recent.items.map((item: any) => ({
+          id: item.track.id,
+          name: item.track.name,
+          artists: item.track.artists?.map((a: any) => a.name).join(", ") || "Unknown Artist",
+          album: item.track.album?.name || "Unknown Album",
+          albumArt: item.track.album?.images?.[0]?.url || null,
+          albumArtSmall: item.track.album?.images?.[2]?.url || item.track.album?.images?.[0]?.url || null,
+          playedAt: item.played_at,
+          uri: item.track.uri,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching recent tracks:", error);
+      res.status(500).json({ error: "Failed to fetch recent tracks", tracks: [] });
     }
   });
 

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Upload, Film, LogIn, LogOut, User, Pencil, Menu, X, RefreshCw, Share2, ChevronLeft, ChevronRight, Music, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import CubeGallery from "@/components/CubeGallery";
@@ -8,10 +8,15 @@ import UploadDropzone from "@/components/UploadDropzone";
 import MediaGrid from "@/components/MediaGrid";
 import ShortsGallery from "@/components/ShortsGallery";
 import SearchFilterBar from "@/components/SearchFilterBar";
+import SpotifyNowPlaying from "@/components/SpotifyNowPlaying";
+import SpotifyPlaylists from "@/components/SpotifyPlaylists";
+import SpotifyAlbumArt from "@/components/SpotifyAlbumArt";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -33,9 +38,15 @@ export default function Home() {
   const [pullDownDistance, setPullDownDistance] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [spotifyOpen, setSpotifyOpen] = useState(true);
   const touchStartRef = useRef(0);
   const cubeRefreshKeyRef = useRef(0);
   const ITEMS_PER_PAGE = 25;
+
+  // Check if Spotify is connected
+  const { data: spotifyStatus } = useQuery<{ connected: boolean }>({
+    queryKey: ["/api/spotify/status"],
+  });
 
   useEffect(() => {
     if (modalMedia) {
@@ -537,6 +548,50 @@ export default function Home() {
         {showUpload && (
           <section className="mb-12 max-w-2xl mx-auto">
             <UploadDropzone onUploaded={handleUpload} />
+          </section>
+        )}
+
+        {/* Spotify Section */}
+        {spotifyStatus?.connected && (
+          <section className="mb-8">
+            <Collapsible open={spotifyOpen} onOpenChange={setSpotifyOpen}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Music className="w-5 h-5 text-green-500" />
+                  <h2 className="text-xl font-semibold text-foreground">Spotify</h2>
+                </div>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" data-testid="button-toggle-spotify">
+                    {spotifyOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              
+              <CollapsibleContent>
+                <div className="space-y-6">
+                  {/* Now Playing */}
+                  <div>
+                    <SpotifyNowPlaying />
+                  </div>
+
+                  {/* Tabs for Playlists and Album Art */}
+                  <Tabs defaultValue="albums" className="w-full">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="albums" data-testid="tab-album-art">Recent Albums</TabsTrigger>
+                      <TabsTrigger value="playlists" data-testid="tab-playlists">Playlists</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="albums">
+                      <SpotifyAlbumArt />
+                    </TabsContent>
+                    
+                    <TabsContent value="playlists">
+                      <SpotifyPlaylists />
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </section>
         )}
 

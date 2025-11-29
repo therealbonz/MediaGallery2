@@ -16,6 +16,14 @@ A modern, interactive media gallery application for organizing and viewing photo
 - PWA support (installable on Android, offline caching)
 - Upload functionality (authenticated users only)
 - Like/unlike toggle for media items
+- Pagination with 25 images per page
+- Homepage link to return to first page
+- Scroll to top on page navigation
+- **Spotify Integration:**
+  - Now Playing widget showing current track with album art and progress
+  - Playlist browser with track listing
+  - Recent albums grid from listening history
+  - Auto-refresh every 5 seconds for now playing
 
 **Known Issues:**
 - Share button rendering issue (invisible despite multiple z-index/positioning attempts) - temporarily removed from modal UI
