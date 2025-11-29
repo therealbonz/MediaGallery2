@@ -83,10 +83,15 @@ export default function Home() {
 
   // Fetch full media (with URLs) for modal and display
   const [mediaList, setMediaList] = useState<Media[]>([]);
+  const [isLoadingMedia, setIsLoadingMedia] = useState(true);
   
   // Load full media data when needed
   const loadFullMediaData = async () => {
-    if (mediaMetadata.length === 0) return;
+    if (mediaMetadata.length === 0) {
+      setIsLoadingMedia(false);
+      return;
+    }
+    setIsLoadingMedia(true);
     const fullData: Media[] = [];
     for (const meta of mediaMetadata) {
       try {
@@ -99,14 +104,17 @@ export default function Home() {
       }
     }
     setMediaList(fullData);
+    setIsLoadingMedia(false);
   };
 
   // Load full data when metadata changes
   useEffect(() => {
     if (mediaMetadata.length > 0 && mediaList.length === 0) {
       loadFullMediaData();
+    } else if (mediaMetadata.length === 0 && !isLoading) {
+      setIsLoadingMedia(false);
     }
-  }, [mediaMetadata, mediaList.length]);
+  }, [mediaMetadata, mediaList.length, isLoading]);
 
 
   // Like mutation
@@ -291,7 +299,7 @@ export default function Home() {
     [paginatedMedia]
   );
 
-  if (isLoading) {
+  if (isLoading || isLoadingMedia) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-lg text-muted-foreground">Loading...</div>
