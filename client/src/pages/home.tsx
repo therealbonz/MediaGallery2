@@ -593,7 +593,7 @@ export default function Home() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -604,22 +604,40 @@ export default function Home() {
           onClick={() => setModalMedia(null)}
           data-testid="modal-overlay"
         >
+          {/* Test text to verify modal is rendering */}
+          <div
+            style={{
+              position: "fixed",
+              top: "10px",
+              left: "10px",
+              backgroundColor: "#ffff00",
+              color: "#000000",
+              padding: "20px",
+              fontSize: "24px",
+              fontWeight: "bold",
+              zIndex: 51,
+            }}
+          >
+            MODAL OPEN ✓
+          </div>
+
           {/* Close Button */}
           <button
             style={{
               position: "fixed",
               top: "20px",
               right: "20px",
-              width: "80px",
-              height: "80px",
+              width: "100px",
+              height: "100px",
               backgroundColor: "#ff0000",
               color: "#ffffff",
-              fontSize: "48px",
-              border: "4px solid #ffffff",
-              borderRadius: "8px",
+              fontSize: "60px",
+              border: "5px solid #ffffff",
+              borderRadius: "12px",
               cursor: "pointer",
               zIndex: 50,
               fontWeight: "bold",
+              boxShadow: "0 0 20px rgba(255,0,0,0.8)",
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -634,18 +652,19 @@ export default function Home() {
           <button
             style={{
               position: "fixed",
-              top: "120px",
+              top: "140px",
               right: "20px",
-              width: "80px",
-              height: "80px",
+              width: "100px",
+              height: "100px",
               backgroundColor: "#00ff00",
               color: "#000000",
-              fontSize: "48px",
-              border: "4px solid #ffffff",
-              borderRadius: "8px",
+              fontSize: "60px",
+              border: "5px solid #ffffff",
+              borderRadius: "12px",
               cursor: "pointer",
               zIndex: 50,
               fontWeight: "bold",
+              boxShadow: "0 0 20px rgba(0,255,0,0.8)",
             }}
             onClick={(e) => {
               e.stopPropagation();
