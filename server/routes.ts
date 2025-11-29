@@ -418,17 +418,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.params.userId;
       const userMedia = await storage.getUserMedia(userId);
       
-      const metaList = userMedia.map(m => ({
-        id: m.id,
-        filename: m.filename,
-        mediaType: m.mediaType,
-        liked: m.liked,
-        displayOrder: m.displayOrder,
-        userId: m.userId,
-        createdAt: m.createdAt,
-      }));
-      
-      res.json(metaList);
+      // Return full media data with URLs for display
+      res.json(userMedia);
     } catch (error) {
       console.error("Error fetching user media:", error);
       res.status(500).json({ error: "Failed to fetch user media" });
