@@ -88,23 +88,24 @@ export default function Home() {
   };
 
   // Fetch media list (metadata only)
-  const { data: mediaMetadata = [], isLoading } = useQuery<any[]>({
+  const { data: mediaMetadata = [], isLoading, isSuccess } = useQuery<any[]>({
     queryKey: ["/api/media"],
   });
 
   // Fetch full media (with URLs) for modal and display
   const [mediaList, setMediaList] = useState<Media[]>([]);
   const [isLoadingMedia, setIsLoadingMedia] = useState(true);
+  const hasLoadedRef = useRef(false);
   
   // Load full media data when needed
-  const loadFullMediaData = async () => {
-    if (mediaMetadata.length === 0) {
+  const loadFullMediaData = async (metadata: any[]) => {
+    if (metadata.length === 0) {
       setIsLoadingMedia(false);
       return;
     }
     setIsLoadingMedia(true);
     const fullData: Media[] = [];
-    for (const meta of mediaMetadata) {
+    for (const meta of metadata) {
       try {
         const response = await fetch(`/api/media/${meta.id}`);
         if (response.ok) {
@@ -118,14 +119,29 @@ export default function Home() {
     setIsLoadingMedia(false);
   };
 
-  // Load full data when metadata changes
+  // Load full data when metadata is available
   useEffect(() => {
-    if (mediaMetadata.length > 0 && mediaList.length === 0) {
-      loadFullMediaData();
-    } else if (mediaMetadata.length === 0 && !isLoading) {
+    if (!isLoading && mediaMetadata.length > 0 && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      loadFullMediaData(mediaMetadata);
+    } else if (!isLoading && mediaMetadata.length === 0) {
       setIsLoadingMedia(false);
     }
-  }, [mediaMetadata, mediaList.length, isLoading]);
+  }, [isLoading, mediaMetadata]);
+
+  // Refresh media data (for use after mutations)
+  const refreshMediaData = async () => {
+    hasLoadedRef.current = false;
+    setMediaList([]);
+    await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
+    const freshData = await queryClient.fetchQuery({ queryKey: ["/api/media"] }) as any[];
+    if (freshData && freshData.length > 0) {
+      hasLoadedRef.current = true;
+      await loadFullMediaData(freshData);
+    } else {
+      setIsLoadingMedia(false);
+    }
+  };
 
   // Scroll to top when page changes
   useEffect(() => {
@@ -159,9 +175,7 @@ export default function Home() {
       });
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
-      setMediaList([]);
-      await loadFullMediaData();
+      await refreshMediaData();
     },
   });
 
@@ -171,9 +185,7 @@ export default function Home() {
       return await apiRequest("DELETE", `/api/media/${id}`);
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
-      setMediaList([]);
-      await loadFullMediaData();
+      await refreshMediaData();
       toast({
         title: "Deleted",
         description: "Media has been deleted",
@@ -189,14 +201,8 @@ export default function Home() {
   });
 
   const handleUpload = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
-    await queryClient.refetchQueries({ queryKey: ["/api/media"] });
-    setMediaList([]);
     setShowUpload(false);
-    // Reload full media data after a brief delay to ensure query updated
-    setTimeout(() => {
-      loadFullMediaData();
-    }, 100);
+    await refreshMediaData();
   };
 
   const handleLike = (id: number) => {
@@ -241,9 +247,7 @@ export default function Home() {
 
   const handlePullToRefresh = async () => {
     setIsRefreshing(true);
-    await queryClient.invalidateQueries({ queryKey: ["/api/media"] });
-    setMediaList([]);
-    await loadFullMediaData();
+    await refreshMediaData();
     cubeRefreshKeyRef.current += 1;
     setIsRefreshing(false);
     setPullDownDistance(0);
