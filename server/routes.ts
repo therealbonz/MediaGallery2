@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { getSpotifyClient, isSpotifyConnected } from "./spotify";
+import { getSpotifyClient, isSpotifyConnected, getSpotifyAuthUrl, exchangeCodeForTokens, disconnectSpotify, hasSpotifyCredentials } from "./spotify";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -282,13 +282,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ SPOTIFY ROUTES ============
 
   // Check Spotify connection status
-  app.get("/api/spotify/status", async (_req, res) => {
+  app.get("/api/spotify/status", (_req, res) => {
     try {
-      const connected = await isSpotifyConnected();
-      res.json({ connected });
+      const connected = isSpotifyConnected();
+      const hasCredentials = hasSpotifyCredentials();
+      res.json({ connected, hasCredentials });
     } catch (error) {
-      res.json({ connected: false });
+      res.json({ connected: false, hasCredentials: false });
     }
+  });
+
+  // Initiate Spotify OAuth login
+  app.get("/api/spotify/login", (req, res) => {
+    try {
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host;
+      const redirectUri = `${protocol}://${host}/api/spotify/callback`;
+      const authUrl = getSpotifyAuthUrl(redirectUri);
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("Error initiating Spotify login:", error);
+      res.redirect('/?spotify_error=config');
+    }
+  });
+
+  // Handle Spotify OAuth callback
+  app.get("/api/spotify/callback", async (req, res) => {
+    try {
+      const { code, error } = req.query;
+      
+      if (error) {
+        console.error("Spotify OAuth error:", error);
+        return res.redirect('/?spotify_error=denied');
+      }
+      
+      if (!code || typeof code !== 'string') {
+        return res.redirect('/?spotify_error=no_code');
+      }
+      
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host;
+      const redirectUri = `${protocol}://${host}/api/spotify/callback`;
+      
+      await exchangeCodeForTokens(code, redirectUri);
+      res.redirect('/?spotify_connected=true');
+    } catch (error) {
+      console.error("Error handling Spotify callback:", error);
+      res.redirect('/?spotify_error=exchange');
+    }
+  });
+
+  // Disconnect Spotify
+  app.post("/api/spotify/disconnect", (_req, res) => {
+    disconnectSpotify();
+    res.json({ success: true });
   });
 
   // Get currently playing track

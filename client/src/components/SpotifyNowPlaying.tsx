@@ -49,13 +49,8 @@ export default function SpotifyNowPlaying() {
 
   if (!statusData?.connected) {
     const handleSpotifyConnect = () => {
-      // On Replit, open the integrations page to connect Spotify
-      if (window.location.hostname.includes('replit.dev')) {
-        window.open('https://replit.com/user/integrations', '_blank');
-      } else {
-        // On VPS, show instructions
-        alert('To connect Spotify:\n1. Create a Spotify app at https://developer.spotify.com\n2. Set the redirect URI to your app URL\n3. Add your credentials to .env file');
-      }
+      // Redirect to the OAuth login endpoint
+      window.location.href = '/api/spotify/login';
     };
 
     return (
