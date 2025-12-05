@@ -2,6 +2,7 @@ import { useParams } from "wouter";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
+import { DragDropContext } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MediaGrid from "@/components/MediaGrid";
@@ -79,7 +80,9 @@ export default function UserPage() {
             No photos uploaded yet
           </div>
         ) : (
-          <MediaGrid media={mediaList} hideUpload={true} />
+          <DragDropContext onDragEnd={() => {}}>
+            <MediaGrid media={mediaList} hideUpload={true} />
+          </DragDropContext>
         )}
       </div>
     </div>
