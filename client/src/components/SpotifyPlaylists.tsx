@@ -43,9 +43,9 @@ export default function SpotifyPlaylists() {
     queryKey: ["/api/spotify/playlists"],
   });
 
-  const { data: tracksData, isLoading: tracksLoading } = useQuery<TracksData>({
-    queryKey: ["/api/spotify/playlists", selectedPlaylist?.id, "tracks"],
-    enabled: !!selectedPlaylist,
+  const { data: tracksData, isLoading: tracksLoading, error: tracksError } = useQuery<TracksData>({
+    queryKey: [`/api/spotify/playlists/${selectedPlaylist?.id}/tracks`],
+    enabled: !!selectedPlaylist?.id,
   });
 
   const formatDuration = (ms: number) => {
