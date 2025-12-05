@@ -4,7 +4,7 @@
 
 A modern, interactive media gallery application for organizing and viewing photos and videos. The application features a unique 3D cube gallery viewer, drag-and-drop upload functionality, advanced filtering and search capabilities, and a responsive masonry-style grid layout. Built with React on the frontend and Express on the backend, using PostgreSQL for data persistence.
 
-## Current Status (Nov 29, 2025)
+## Current Status (Dec 5, 2025)
 
 **Fully Functional Features:**
 - Gallery grid with drag-to-reorder functionality
@@ -19,15 +19,30 @@ A modern, interactive media gallery application for organizing and viewing photo
 - Pagination with 25 images per page
 - Homepage link to return to first page
 - Scroll to top on page navigation
+- **Comments System:**
+  - View and add comments on any media in modal
+  - Comments show user avatar, name, and timestamp
+  - Users can delete their own comments
+  - Displayed in tabbed interface within modal
+- **Duplicate Detection:**
+  - Automatically detects images with same filename
+  - Shows warning with list of duplicates in Info tab
+  - Click duplicates to navigate between them
+- **User Profiles:**
+  - View all users who have uploaded media at /users
+  - Click on a user to see their gallery at /users/:userId
+  - User tracking on all uploaded media
 - **Spotify Integration:**
   - Now Playing widget showing current track with album art and progress
-  - Playlist browser with track listing
+  - Playlist browser with track listing (requires Spotify connection)
   - Recent albums grid from listening history
   - Auto-refresh every 5 seconds for now playing
+  - Custom OAuth flow using user-provided credentials
 
 **Known Issues:**
 - Share button rendering issue (invisible despite multiple z-index/positioning attempts) - temporarily removed from modal UI
 - Share functionality backend code remains in handleShare() for future implementation
+- Spotify features require user to connect via "Connect Spotify" button first
 
 ## User Preferences
 

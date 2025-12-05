@@ -135,10 +135,17 @@ export default function SpotifyPlaylists() {
               </div>
             ))}
           </div>
+        ) : tracksError || !tracksData?.tracks?.length ? (
+          <Card className="p-8 text-center">
+            <Music className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">
+              {tracksError ? "Unable to load tracks" : "No tracks in this playlist"}
+            </p>
+          </Card>
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="space-y-1">
-              {tracksData?.tracks.map((track, index) => (
+              {tracksData.tracks.map((track, index) => (
                 <div
                   key={`${track.id}-${index}`}
                   className="flex items-center gap-3 p-2 rounded-lg hover-elevate transition-colors group"
