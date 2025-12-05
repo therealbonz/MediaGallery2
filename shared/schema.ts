@@ -81,3 +81,43 @@ export const spotifyTokens = pgTable("spotify_tokens", {
 });
 
 export type SpotifyToken = typeof spotifyTokens.$inferSelect;
+
+// Reactions table for emoji reactions on media
+export const reactions = pgTable("reactions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  mediaId: integer("media_id").notNull().references(() => media.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  emoji: varchar("emoji", { length: 10 }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("IDX_reactions_media_id").on(table.mediaId),
+  index("IDX_reactions_user_id").on(table.userId),
+]);
+
+export const insertReactionSchema = createInsertSchema(reactions).pick({
+  mediaId: true,
+  userId: true,
+  emoji: true,
+});
+
+export type InsertReaction = z.infer<typeof insertReactionSchema>;
+export type Reaction = typeof reactions.$inferSelect;
+
+// Follows table for user following
+export const follows = pgTable("follows", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  followerId: varchar("follower_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  followingId: varchar("following_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("IDX_follows_follower_id").on(table.followerId),
+  index("IDX_follows_following_id").on(table.followingId),
+]);
+
+export const insertFollowSchema = createInsertSchema(follows).pick({
+  followerId: true,
+  followingId: true,
+});
+
+export type InsertFollow = z.infer<typeof insertFollowSchema>;
+export type Follow = typeof follows.$inferSelect;
