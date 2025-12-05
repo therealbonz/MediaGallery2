@@ -36,6 +36,7 @@ export const media = pgTable("media", {
   liked: boolean("liked").notNull().default(false),
   displayOrder: integer("display_order").notNull().default(0),
   userId: varchar("user_id").references(() => users.id),
+  imageHash: varchar("image_hash"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -51,3 +52,21 @@ export const insertMediaSchema = createInsertSchema(media).pick({
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type Media = typeof media.$inferSelect;
 export type MediaMetadata = Omit<Media, 'url'>;
+
+// Comments table
+export const comments = pgTable("comments", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  mediaId: integer("media_id").notNull().references(() => media.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [index("IDX_comments_media_id").on(table.mediaId)]);
+
+export const insertCommentSchema = createInsertSchema(comments).pick({
+  mediaId: true,
+  userId: true,
+  text: true,
+});
+
+export type InsertComment = z.infer<typeof insertCommentSchema>;
+export type Comment = typeof comments.$inferSelect;

@@ -1,7 +1,7 @@
 import { eq, desc, and } from "drizzle-orm";
 import { db } from "./db";
-import { media, users } from "@shared/schema";
-import { type Media, type InsertMedia, type User, type UpsertUser } from "@shared/schema";
+import { media, users, comments } from "@shared/schema";
+import { type Media, type InsertMedia, type User, type UpsertUser, type Comment, type InsertComment } from "@shared/schema";
 
 export interface IStorage {
   getAllMedia(): Promise<Media[]>;
@@ -15,6 +15,10 @@ export interface IStorage {
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   getUserMedia(userId: string): Promise<Media[]>;
+  getMediaComments(mediaId: number): Promise<(Comment & { user: User })[]>;
+  createComment(comment: InsertComment): Promise<Comment>;
+  deleteComment(commentId: number): Promise<boolean>;
+  findDuplicateMedia(mediaId: number): Promise<Media[]>;
 }
 
 export class DbStorage implements IStorage {
@@ -101,6 +105,45 @@ export class DbStorage implements IStorage {
       .from(media)
       .where(eq(media.userId, userId))
       .orderBy(media.displayOrder, desc(media.createdAt));
+  }
+
+  async getMediaComments(mediaId: number): Promise<(Comment & { user: User })[]> {
+    const result = await db
+      .select({
+        comment: comments,
+        user: users,
+      })
+      .from(comments)
+      .innerJoin(users, eq(comments.userId, users.id))
+      .where(eq(comments.mediaId, mediaId))
+      .orderBy(desc(comments.createdAt));
+    
+    return result.map(r => ({ ...r.comment, user: r.user }));
+  }
+
+  async createComment(comment: InsertComment): Promise<Comment> {
+    const result = await db.insert(comments).values(comment).returning();
+    return result[0];
+  }
+
+  async deleteComment(commentId: number): Promise<boolean> {
+    const result = await db.delete(comments).where(eq(comments.id, commentId)).returning();
+    return result.length > 0;
+  }
+
+  async findDuplicateMedia(mediaId: number): Promise<Media[]> {
+    const targetMedia = await this.getMedia(mediaId);
+    if (!targetMedia) return [];
+    
+    // Find duplicates by same filename or similar size
+    const allMedia = await this.getAllMedia();
+    const duplicates = allMedia.filter(m => 
+      m.id !== mediaId && 
+      m.mediaType === targetMedia.mediaType &&
+      m.filename === targetMedia.filename
+    );
+    
+    return duplicates;
   }
 }
 

@@ -473,6 +473,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ COMMENTS ROUTES ============
+
+  // Get comments for a media item
+  app.get("/api/media/:id/comments", async (req, res) => {
+    try {
+      const mediaId = parseInt(req.params.id);
+      const mediaComments = await storage.getMediaComments(mediaId);
+      res.json(mediaComments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ error: "Failed to fetch comments" });
+    }
+  });
+
+  // Create a comment
+  app.post("/api/media/:id/comments", async (req: any, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.claims?.sub) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const mediaId = parseInt(req.params.id);
+      const { text } = req.body;
+
+      if (!text || typeof text !== "string" || text.trim().length === 0) {
+        return res.status(400).json({ error: "Comment text is required" });
+      }
+
+      const comment = await storage.createComment({
+        mediaId,
+        userId: req.user.claims.sub,
+        text: text.trim(),
+      });
+
+      const enrichedComment = await storage.getMediaComments(mediaId);
+      const newComment = enrichedComment.find(c => c.id === comment.id);
+      
+      res.json(newComment || comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ error: "Failed to create comment" });
+    }
+  });
+
+  // Delete a comment
+  app.delete("/api/comments/:id", async (req: any, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.claims?.sub) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const commentId = parseInt(req.params.id);
+      const success = await storage.deleteComment(commentId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ error: "Failed to delete comment" });
+    }
+  });
+
+  // ============ DUPLICATE DETECTION ROUTES ============
+
+  // Find duplicates for a media item
+  app.get("/api/media/:id/duplicates", async (req, res) => {
+    try {
+      const mediaId = parseInt(req.params.id);
+      const duplicates = await storage.findDuplicateMedia(mediaId);
+      res.json({ duplicates });
+    } catch (error) {
+      console.error("Error finding duplicates:", error);
+      res.status(500).json({ error: "Failed to find duplicates" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

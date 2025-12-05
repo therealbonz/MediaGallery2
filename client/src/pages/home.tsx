@@ -11,6 +11,8 @@ import SearchFilterBar from "@/components/SearchFilterBar";
 import SpotifyNowPlaying from "@/components/SpotifyNowPlaying";
 import SpotifyPlaylists from "@/components/SpotifyPlaylists";
 import SpotifyAlbumArt from "@/components/SpotifyAlbumArt";
+import CommentsSection from "@/components/CommentsSection";
+import DuplicatesSection from "@/components/DuplicatesSection";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -848,6 +850,27 @@ export default function Home() {
                 className="max-h-[75vh] max-w-full"
               />
             ) : null}
+          </div>
+          <div className="border-t border-gray-700 bg-black/50 p-4 max-h-64 overflow-y-auto">
+            {modalMedia && (
+              <Tabs defaultValue="comments" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                  <TabsTrigger value="comments" data-testid="tab-comments">Comments</TabsTrigger>
+                  <TabsTrigger value="info" data-testid="tab-info">Info</TabsTrigger>
+                </TabsList>
+                <TabsContent value="comments" className="space-y-3">
+                  <CommentsSection mediaId={modalMedia.id} userId={user?.id} />
+                </TabsContent>
+                <TabsContent value="info" className="space-y-3">
+                  <DuplicatesSection mediaId={modalMedia.id} onSelectDuplicate={setModalMedia} />
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p><strong>File:</strong> {modalMedia.filename}</p>
+                    <p><strong>Type:</strong> {modalMedia.mediaType}</p>
+                    <p><strong>Uploaded:</strong> {new Date(modalMedia.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </div>
         </DialogContent>
       </Dialog>
