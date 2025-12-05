@@ -1,7 +1,7 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { db } from "./db";
-import { media, users, comments } from "@shared/schema";
-import { type Media, type InsertMedia, type User, type UpsertUser, type Comment, type InsertComment } from "@shared/schema";
+import { media, users, comments, reactions, follows } from "@shared/schema";
+import { type Media, type InsertMedia, type User, type UpsertUser, type Comment, type InsertComment, type Reaction, type InsertReaction, type Follow, type InsertFollow } from "@shared/schema";
 
 export interface IStorage {
   getAllMedia(): Promise<Media[]>;
@@ -19,6 +19,18 @@ export interface IStorage {
   createComment(comment: InsertComment): Promise<Comment>;
   deleteComment(commentId: number): Promise<boolean>;
   findDuplicateMedia(mediaId: number): Promise<Media[]>;
+  // Reactions
+  getMediaReactions(mediaId: number): Promise<(Reaction & { user: User })[]>;
+  toggleReaction(mediaId: number, userId: string, emoji: string): Promise<{ added: boolean; reaction?: Reaction }>;
+  getUserReaction(mediaId: number, userId: string): Promise<Reaction | undefined>;
+  // Follows
+  followUser(followerId: string, followingId: string): Promise<Follow>;
+  unfollowUser(followerId: string, followingId: string): Promise<boolean>;
+  isFollowing(followerId: string, followingId: string): Promise<boolean>;
+  getFollowers(userId: string): Promise<User[]>;
+  getFollowing(userId: string): Promise<User[]>;
+  getFollowingFeed(userId: string): Promise<Media[]>;
+  getFollowCounts(userId: string): Promise<{ followers: number; following: number }>;
 }
 
 export class DbStorage implements IStorage {
@@ -144,6 +156,155 @@ export class DbStorage implements IStorage {
     );
     
     return duplicates;
+  }
+
+  // Reactions methods
+  async getMediaReactions(mediaId: number): Promise<(Reaction & { user: User })[]> {
+    const result = await db
+      .select({
+        reaction: reactions,
+        user: users,
+      })
+      .from(reactions)
+      .innerJoin(users, eq(reactions.userId, users.id))
+      .where(eq(reactions.mediaId, mediaId))
+      .orderBy(desc(reactions.createdAt));
+    
+    return result.map(r => ({ ...r.reaction, user: r.user }));
+  }
+
+  async toggleReaction(mediaId: number, userId: string, emoji: string): Promise<{ added: boolean; reaction?: Reaction }> {
+    // Check if user already reacted with this emoji
+    const existing = await db
+      .select()
+      .from(reactions)
+      .where(and(
+        eq(reactions.mediaId, mediaId),
+        eq(reactions.userId, userId),
+        eq(reactions.emoji, emoji)
+      ));
+    
+    if (existing.length > 0) {
+      // Remove the reaction
+      await db.delete(reactions).where(eq(reactions.id, existing[0].id));
+      return { added: false };
+    } else {
+      // Add the reaction
+      const result = await db.insert(reactions).values({
+        mediaId,
+        userId,
+        emoji,
+      }).returning();
+      return { added: true, reaction: result[0] };
+    }
+  }
+
+  async getUserReaction(mediaId: number, userId: string): Promise<Reaction | undefined> {
+    const result = await db
+      .select()
+      .from(reactions)
+      .where(and(
+        eq(reactions.mediaId, mediaId),
+        eq(reactions.userId, userId)
+      ));
+    return result[0];
+  }
+
+  // Follow methods
+  async followUser(followerId: string, followingId: string): Promise<Follow> {
+    // Check if already following
+    const existing = await db
+      .select()
+      .from(follows)
+      .where(and(
+        eq(follows.followerId, followerId),
+        eq(follows.followingId, followingId)
+      ));
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    
+    const result = await db.insert(follows).values({
+      followerId,
+      followingId,
+    }).returning();
+    return result[0];
+  }
+
+  async unfollowUser(followerId: string, followingId: string): Promise<boolean> {
+    const result = await db
+      .delete(follows)
+      .where(and(
+        eq(follows.followerId, followerId),
+        eq(follows.followingId, followingId)
+      ))
+      .returning();
+    return result.length > 0;
+  }
+
+  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    const result = await db
+      .select()
+      .from(follows)
+      .where(and(
+        eq(follows.followerId, followerId),
+        eq(follows.followingId, followingId)
+      ));
+    return result.length > 0;
+  }
+
+  async getFollowers(userId: string): Promise<User[]> {
+    const result = await db
+      .select({ user: users })
+      .from(follows)
+      .innerJoin(users, eq(follows.followerId, users.id))
+      .where(eq(follows.followingId, userId));
+    return result.map(r => r.user);
+  }
+
+  async getFollowing(userId: string): Promise<User[]> {
+    const result = await db
+      .select({ user: users })
+      .from(follows)
+      .innerJoin(users, eq(follows.followingId, users.id))
+      .where(eq(follows.followerId, userId));
+    return result.map(r => r.user);
+  }
+
+  async getFollowingFeed(userId: string): Promise<Media[]> {
+    // Get all users that this user follows
+    const following = await this.getFollowing(userId);
+    const followingIds = following.map(u => u.id);
+    
+    if (followingIds.length === 0) {
+      return [];
+    }
+    
+    // Get media from followed users
+    return await db
+      .select()
+      .from(media)
+      .where(inArray(media.userId, followingIds))
+      .orderBy(desc(media.createdAt))
+      .limit(50);
+  }
+
+  async getFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
+    const followers = await db
+      .select()
+      .from(follows)
+      .where(eq(follows.followingId, userId));
+    
+    const following = await db
+      .select()
+      .from(follows)
+      .where(eq(follows.followerId, userId));
+    
+    return {
+      followers: followers.length,
+      following: following.length,
+    };
   }
 }
 
