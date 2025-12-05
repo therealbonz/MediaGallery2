@@ -374,13 +374,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/spotify/playlists", async (_req, res) => {
     try {
       const spotify = await getSpotifyClient();
-      const playlists = await spotify.currentUser.playlists.playlists(50);
+      const playlists = await spotify.currentUser.playlists.playlists();
       
       res.json({
-        playlists: playlists.items.map((p: any) => ({
+        playlists: (playlists.items || []).map((p: any) => ({
           id: p.id,
           name: p.name,
-          description: p.description,
+          description: p.description || "",
           image: p.images?.[0]?.url || null,
           trackCount: p.tracks?.total || 0,
           owner: p.owner?.display_name || "Unknown",
@@ -389,8 +389,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
       });
     } catch (error) {
-      console.error("Error fetching playlists:", error);
-      res.status(500).json({ error: "Failed to fetch playlists", playlists: [] });
+      console.error("Error fetching playlists:", error instanceof Error ? error.message : error);
+      res.json({ error: "Failed to fetch playlists", playlists: [] });
     }
   });
 
@@ -399,10 +399,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const spotify = await getSpotifyClient();
       const playlistId = req.params.id;
-      const tracks = await spotify.playlists.getPlaylistItems(playlistId, undefined, undefined, 50);
+      const tracks = await spotify.playlists.getPlaylistItems(playlistId);
       
       res.json({
-        tracks: tracks.items
+        tracks: (tracks.items || [])
           .filter((item: any) => item.track)
           .map((item: any) => ({
             id: item.track.id,
@@ -417,8 +417,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })),
       });
     } catch (error) {
-      console.error("Error fetching playlist tracks:", error);
-      res.status(500).json({ error: "Failed to fetch playlist tracks", tracks: [] });
+      console.error("Error fetching playlist tracks:", error instanceof Error ? error.message : error);
+      res.json({ error: "Failed to fetch playlist tracks", tracks: [] });
     }
   });
 

@@ -11,17 +11,18 @@ import type { User, Media } from "@shared/schema";
 export default function UserPage() {
   const { userId } = useParams<{ userId: string }>();
 
-  // Get all users to find this one
+  // Get user's media directly - don't need to fetch all users
+  const { data: mediaList = [], isLoading: mediaLoading, error: mediaError } = useQuery<Media[]>({
+    queryKey: [`/api/users/${userId}/media`],
+    enabled: !!userId,
+  });
+
+  // Get current user info from all users
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
 
   const currentUser = users.find(u => u.id === userId);
-
-  const { data: mediaList = [], isLoading: mediaLoading } = useQuery<Media[]>({
-    queryKey: [`/api/users/${userId}/media`],
-    enabled: !!userId,
-  });
 
   if (usersLoading || mediaLoading) {
     return (
@@ -31,7 +32,7 @@ export default function UserPage() {
     );
   }
 
-  if (!currentUser) {
+  if (!currentUser || mediaError) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-lg text-muted-foreground">User not found</div>
