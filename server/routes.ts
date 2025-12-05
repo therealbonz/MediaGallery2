@@ -282,9 +282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============ SPOTIFY ROUTES ============
 
   // Check Spotify connection status
-  app.get("/api/spotify/status", (_req, res) => {
+  app.get("/api/spotify/status", async (_req, res) => {
     try {
-      const connected = isSpotifyConnected();
+      const connected = await isSpotifyConnected();
       const hasCredentials = hasSpotifyCredentials();
       res.json({ connected, hasCredentials });
     } catch (error) {
@@ -333,8 +333,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Disconnect Spotify
-  app.post("/api/spotify/disconnect", (_req, res) => {
-    disconnectSpotify();
+  app.post("/api/spotify/disconnect", async (_req, res) => {
+    await disconnectSpotify();
     res.json({ success: true });
   });
 

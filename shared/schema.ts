@@ -70,3 +70,14 @@ export const insertCommentSchema = createInsertSchema(comments).pick({
 
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Comment = typeof comments.$inferSelect;
+
+// Spotify tokens table for persistence
+export const spotifyTokens = pgTable("spotify_tokens", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type SpotifyToken = typeof spotifyTokens.$inferSelect;
